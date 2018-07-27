@@ -12,14 +12,17 @@ from jinja2 import Template
 
 log = logging.getLogger(__name__)
 
+
 def set_logging():
     log.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
     console.setFormatter(formatter)
 
     log.addHandler(console)
+
 
 set_logging()
 
@@ -28,8 +31,10 @@ git_dir = '/tmp/build_changes'
 
 ignored_project_attributes = ['required']
 
+
 def log_url(branch, build_number):
     return 'http://logs.tungsten.io/periodic-nightly/review.opencontrail.org/{}/{}/'.format(branch, build_number)
+
 
 def get_by_value(dict_list, key, value):
     for d in dict_list:
@@ -37,15 +42,19 @@ def get_by_value(dict_list, key, value):
             return d
     return None
 
+
 def dict_equal_but(d1, d2, ignored_keys):
     return True
+
 
 def remove_keys(d, keys):
     for k in keys:
         del d[k]
 
+
 def fetch_projects_from_job(branch, build_number, job_name):
-    log.debug('fetch_projects_from_job: %s %s %s', branch, build_number, job_name)
+    log.debug('fetch_projects_from_job: %s %s %s',
+              branch, build_number, job_name)
     job_log_url = log_url(branch, build_number) + '/' + job_name
     inventory = requests.get(job_log_url + '/zuul-info/inventory.yaml').text
     gitlog = requests.get(job_log_url + '/zuul-info/gitlog.builder.md').text
@@ -63,6 +72,7 @@ def fetch_projects_from_job(branch, build_number, job_name):
         remove_keys(p, ignored_project_attributes)
     return projects
 
+
 def fetch_all_projects_from_buildset(branch, build_number, job_list):
     projects = {}
     for job_name in job_list:
@@ -78,9 +88,10 @@ def fetch_all_projects_from_buildset(branch, build_number, job_list):
                 projects[canonical_name] = p
     return projects
 
+
 projects = {
-    'Juniper/contrail-controller': { 'previous': 'abcd', 'current': '1234' },
-    'Juniper/contrail-vrouter': { 'previous': 'abcd', 'current': '1234' },
+    'Juniper/contrail-controller': {'previous': 'abcd', 'current': '1234'},
+    'Juniper/contrail-vrouter': {'previous': 'abcd', 'current': '1234'},
 }
 
 
@@ -88,8 +99,10 @@ def merge_projects(previous, current):
     # TODO check if both projects sets are equal
     for canonical_name, project in current.items():
         prev_sha = previous.get(canonical_name, {}).get("sha", None)
-        project["revisions"] = { "previous": prev_sha, "current": project["sha"] }
+        project["revisions"] = {
+            "previous": prev_sha, "current": project["sha"]}
         del project["sha"]
+
 
 def sync_git_repos(git_dir, projects, branch):
     if not os.path.isdir(git_dir):
@@ -97,11 +110,14 @@ def sync_git_repos(git_dir, projects, branch):
     for canonical_name, project in projects.items():
         repo_path = os.path.join(git_dir, project['short_name'])
         if not os.path.isdir(repo_path):
-            subprocess.check_call(["git", "clone", "--single-branch", "--branch", branch, "https://" + canonical_name], cwd = git_dir)
+            subprocess.check_call(["git", "clone", "--single-branch",
+                                   "--branch", branch, "https://" + canonical_name], cwd=git_dir)
         else:
-            subprocess.check_call(["git", "fetch", "origin"], cwd = repo_path)
-            subprocess.check_call(["git", "checkout", branch], cwd = repo_path)
-            subprocess.check_call(["git", "reset", "--hard", "origin/" + branch], cwd = repo_path)
+            subprocess.check_call(["git", "fetch", "origin"], cwd=repo_path)
+            subprocess.check_call(["git", "checkout", branch], cwd=repo_path)
+            subprocess.check_call(
+                ["git", "reset", "--hard", "origin/" + branch], cwd=repo_path)
+
 
 def get_commit_list_git_cli(previous_sha, current_sha, cwd=None, args=[]):
     """Use regular git command line to obtain a list of commit SHAs to dump (as
@@ -113,12 +129,14 @@ def get_commit_list_git_cli(previous_sha, current_sha, cwd=None, args=[]):
     shas = shas.splitlines()
     return shas
 
+
 def get_repo_obj(git_workspace_path=None):
     if git_workspace_path is None:
         git_workspace_path = os.getcwd()
     repository_path = pygit2.discover_repository(git_workspace_path)
     repo = pygit2.Repository(repository_path)
     return repo
+
 
 def get_change_info(change_id, gerrit_host='https://review.opencontrail.org'):
     change_id_quoted = requests.utils.quote(change_id, safe='~')
@@ -138,6 +156,7 @@ def get_change_info(change_id, gerrit_host='https://review.opencontrail.org'):
     }
     return converted
 
+
 def dump_commit(sha, project, branch, repo_path=None):
     repo = get_repo_obj(repo_path)
     data = []
@@ -150,34 +169,40 @@ def dump_commit(sha, project, branch, repo_path=None):
         if message[0] == "":
             del message[0]
     message = '\n'.join(message)
-    obj = { "sha": commit.hex,
-            "author": {
-                "email": commit.author.email,
-                "name": commit.author.name },
-            "timestamp": commit.commit_time,
-            "title": title,
-            "message": message }
+    obj = {"sha": commit.hex,
+           "author": {
+               "email": commit.author.email,
+               "name": commit.author.name},
+           "timestamp": commit.commit_time,
+           "title": title,
+           "message": message}
     obj["change"] = None
     obj["bugs"] = []
     for line in message_lines:
         if line.startswith("Change-Id:"):
             change_id = line.split()[1]
-            change_info = get_change_info(project["name"] + "~" + branch + "~" + change_id)
+            change_info = get_change_info(
+                project["name"] + "~" + branch + "~" + change_id)
             obj["change"] = change_info
         else:
             bug_match = re.match(r'^(\S+)-Bug: +#(\d+)', line)
             if bug_match is not None:
                 bug_id = bug_match.group(2)
                 resolution = bug_match.group(1)
-                obj["bugs"].append({ "id": bug_id, "url": "https://launchpad.net/bugs/" + bug_id, "resolution": resolution })
+                obj["bugs"].append(
+                    {"id": bug_id, "url": "https://launchpad.net/bugs/" + bug_id, "resolution": resolution})
     return obj
+
 
 def get_changes(git_dir, projects, branch):
     for canonical_name, project in projects.items():
         repo_path = os.path.join(git_dir, project['short_name'])
-        sha_list = get_commit_list_git_cli(project["revisions"]["previous"], project["revisions"]["current"], cwd=repo_path)
-        commits = [ dump_commit(sha, project, branch, repo_path) for sha in sha_list ]
+        sha_list = get_commit_list_git_cli(
+            project["revisions"]["previous"], project["revisions"]["current"], cwd=repo_path)
+        commits = [dump_commit(sha, project, branch, repo_path)
+                   for sha in sha_list]
         project["changes"] = commits
+
 
 def render_changes(projects, context):
     with open('changes.html.tpl', 'r') as template_file:
@@ -185,6 +210,7 @@ def render_changes(projects, context):
     template = Template(template)
     out = template.render(**context)
     return out
+
 
 job_list = [
     'build-variables-init',
@@ -204,7 +230,8 @@ job_list = [
 ]
 
 job_blacklist = ['build-variables-init', 'post-nightly-registry-port']
-job_list = [ j for j in job_list if j not in job_blacklist]
+job_list = [j for j in job_list if j not in job_blacklist]
+
 
 def main():
     branch = sys.argv[1]
@@ -217,8 +244,10 @@ def main():
     do_sync_git_repos = True
 
     if read_projects_from_logserver:
-        current_projects = fetch_all_projects_from_buildset(branch, build_number, job_list)
-        previous_projects = fetch_all_projects_from_buildset(branch, previous_build_number, previous_job_list)
+        current_projects = fetch_all_projects_from_buildset(
+            branch, build_number, job_list)
+        previous_projects = fetch_all_projects_from_buildset(
+            branch, previous_build_number, previous_job_list)
         with open('projects.json', 'w') as pfile:
             json.dump(current_projects, pfile, indent=4)
         with open('projects_prev.json', 'w') as pfile:
@@ -235,18 +264,19 @@ def main():
         sync_git_repos(git_dir, projects, branch)
     get_changes(git_dir, projects, branch)
     #print(json.dumps(projects, indent=4))
-    #with open('final.json', 'w') as out:
+    # with open('final.json', 'w') as out:
     #    json.dump(projects, out, indent=4)
-    #with open('final.json', 'r') as pfile:
+    # with open('final.json', 'r') as pfile:
     #    projects = json.load(pfile)
 
     context = {
-      "projects": projects,
-      "build_number_prev": previous_build_number,
-      "build_number": build_number
+        "projects": projects,
+        "build_number_prev": previous_build_number,
+        "build_number": build_number
     }
     with open('changes.html', 'w') as out:
         out.write(render_changes(projects, context))
+
 
 if __name__ == '__main__':
     main()
