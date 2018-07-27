@@ -15,15 +15,20 @@ td, th { border: 1px solid black; padding: 10px }
     </tr>
     {% else %}
     <td>Prev commit: {{ project.revisions.previous }}</td>
-    <td colspan=2>Current commit: {{ project.revisions.current }}</td>
+    <td colspan=3>Current commit: {{ project.revisions.current }}</td>
     </tr>
-<tr><th>Commit ID</th><th>Title</th><th>Author</th><th>Review</th></tr>
+<tr><th>Commit ID</th><th>Title</th><th>Author</th><th>Review</th><th>Bugs</th</tr>
 {% for change in project.changes %}
 <tr>
 <td>{{ change.sha[:7] }}</td>
 <td>{{ change.title }}</td>
 <td>{{ change.author.email }}</td>
 <td><a href="{{ change.change.url | default("") }}">{{ change.change.number | default("") }}</a></td>
+<td>
+{% for bug in change.bugs %}
+<a href="{{ bug.url | default("") }}">{{ bug.resolution }}: {{bug.id }}</a><br>
+{% endfor %}
+</td>
 </tr>
 {% endfor %}
 {% endif %}

@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import requests
 import tempfile
 import subprocess
@@ -157,11 +158,18 @@ def dump_commit(sha, project, branch, repo_path=None):
             "title": title,
             "message": message }
     obj["change"] = None
+    obj["bugs"] = []
     for line in message_lines:
         if line.startswith("Change-Id:"):
             change_id = line.split()[1]
             change_info = get_change_info(project["name"] + "~" + branch + "~" + change_id)
             obj["change"] = change_info
+        else:
+            bug_match = re.match(r'^(\S+)-Bug: +#(\d+)', line)
+            if bug_match is not None:
+                bug_id = bug_match.group(2)
+                resolution = bug_match.group(1)
+                obj["bugs"].append({ "id": bug_id, "url": "https://launchpad.net/bugs/" + bug_id, "resolution": resolution })
     return obj
 
 def get_changes(git_dir, projects, branch):
