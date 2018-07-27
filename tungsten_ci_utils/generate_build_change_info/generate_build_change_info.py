@@ -7,7 +7,6 @@ import yaml
 import json
 import logging
 import pygit2
-import urllib.parse
 from jinja2 import Template
 
 log = logging.getLogger(__name__)
@@ -25,26 +24,6 @@ set_logging()
 
 #git_dir = tempfile.mkdtemp(prefix='build_changes')
 git_dir = '/tmp/build_changes'
-branch = 'master'
-build_number = 201
-job_list = [
-        'build-variables-init',
-        'contrail-build-vro-plugin',
-'contrail-go-docker',
-'contrail-vnc-build-containers-centos7-newton',
-'contrail-vnc-build-containers-centos7-ocata',
-'contrail-vnc-build-containers-centos7-queens',
-'contrail-vnc-build-containers-rhel7-ocata',
-'contrail-vnc-build-containers-rhel7-queens',
-'contrail-vnc-build-package-centos74',
-'contrail-vnc-build-package-rhel7-ocata',
-'contrail-vnc-build-package-rhel7-queens',
-'contrail-vnc-build-test-containers',
-'contrail-vnc-publish-containers-nightly',
-'post-nightly-registry-port'
-]
-last_successful_build = 200
-last_job_list = job_list
 
 ignored_project_attributes = ['required']
 
@@ -103,17 +82,6 @@ projects = {
     'Juniper/contrail-vrouter': { 'previous': 'abcd', 'current': '1234' },
 }
 
-job_blacklist = ['build-variables-init', 'post-nightly-registry-port']
-job_list = [ j for j in job_list if j not in job_blacklist]
-
-def get_prev_proj():
-    projects = fetch_all_projects_from_buildset(branch, 175, job_list)
-    print(json.dumps(projects, indent=4))
-    with open('projects_prev.json', 'w') as pfile:
-        json.dump(projects, pfile, indent=4)
-
-#get_prev_proj()
-#sys.exit(0)
 
 def merge_projects(previous, current):
     # TODO check if both projects sets are equal
@@ -152,7 +120,7 @@ def get_repo_obj(git_workspace_path=None):
     return repo
 
 def get_change_info(change_id, gerrit_host='https://review.opencontrail.org'):
-    change_id_quoted = urllib.parse.quote(change_id, safe='~')
+    change_id_quoted = requests.utils.quote(change_id, safe='~')
     req = requests.get(gerrit_host + "/changes/" + change_id_quoted)
     resp = '\n'.join(req.text.splitlines()[1:])
     if req.status_code != 200:
@@ -196,7 +164,7 @@ def dump_commit(sha, project, branch, repo_path=None):
             obj["change"] = change_info
     return obj
 
-def get_changes(git_dir, projects):
+def get_changes(git_dir, projects, branch):
     for canonical_name, project in projects.items():
         repo_path = os.path.join(git_dir, project['short_name'])
         sha_list = get_commit_list_git_cli(project["revisions"]["previous"], project["revisions"]["current"], cwd=repo_path)
@@ -210,25 +178,67 @@ def render_changes(projects, context):
     out = template.render(**context)
     return out
 
-with open('projects.json', 'r') as pfile:
-    projects = json.load(pfile)
-with open('projects_prev.json', 'r') as pfile:
-    projects_prev = json.load(pfile)
+job_list = [
+    'build-variables-init',
+    'contrail-build-vro-plugin',
+    'contrail-go-docker',
+    'contrail-vnc-build-containers-centos7-newton',
+    'contrail-vnc-build-containers-centos7-ocata',
+    'contrail-vnc-build-containers-centos7-queens',
+    'contrail-vnc-build-containers-rhel7-ocata',
+    'contrail-vnc-build-containers-rhel7-queens',
+    'contrail-vnc-build-package-centos74',
+    'contrail-vnc-build-package-rhel7-ocata',
+    'contrail-vnc-build-package-rhel7-queens',
+    'contrail-vnc-build-test-containers',
+    'contrail-vnc-publish-containers-nightly',
+    'post-nightly-registry-port'
+]
 
-#sync_git_repos(git_dir, projects, branch)
+job_blacklist = ['build-variables-init', 'post-nightly-registry-port']
+job_list = [ j for j in job_list if j not in job_blacklist]
 
-merge_projects(projects_prev, projects)
-#get_changes(git_dir, projects)
-#print(json.dumps(projects, indent=4))
-#with open('final.json', 'w') as out:
-#    json.dump(projects, out, indent=4)
-with open('final.json', 'r') as pfile:
-    projects = json.load(pfile)
+def main():
+    branch = sys.argv[1]
+    build_number = sys.argv[2]
+    current_job_list = job_list
+    previous_build_number = str(int(build_number)-1)
+    previous_job_list = job_list
 
-context = {
-  "projects": projects,
-  "build_number_prev": 175,
-  "build_number": build_number
-}
-with open('changes.html', 'w') as out:
-    out.write(render_changes(projects, context))
+    read_projects_from_logserver = True
+    do_sync_git_repos = True
+
+    if read_projects_from_logserver:
+        current_projects = fetch_all_projects_from_buildset(branch, build_number, job_list)
+        previous_projects = fetch_all_projects_from_buildset(branch, previous_build_number, previous_job_list)
+        with open('projects.json', 'w') as pfile:
+            json.dump(current_projects, pfile, indent=4)
+        with open('projects_prev.json', 'w') as pfile:
+            json.dump(previous_projects, pfile, indent=4)
+    else:
+        with open('projects.json', 'r') as pfile:
+            current_projects = json.load(pfile)
+        with open('projects_prev.json', 'r') as pfile:
+            previous_projects = json.load(pfile)
+
+    merge_projects(previous_projects, current_projects)
+    projects = current_projects
+    if do_sync_git_repos:
+        sync_git_repos(git_dir, projects, branch)
+    get_changes(git_dir, projects, branch)
+    #print(json.dumps(projects, indent=4))
+    #with open('final.json', 'w') as out:
+    #    json.dump(projects, out, indent=4)
+    #with open('final.json', 'r') as pfile:
+    #    projects = json.load(pfile)
+
+    context = {
+      "projects": projects,
+      "build_number_prev": 175,
+      "build_number": build_number
+    }
+    with open('changes.html', 'w') as out:
+        out.write(render_changes(projects, context))
+
+if __name__ == '__main__':
+    main()
