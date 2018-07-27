@@ -5,7 +5,7 @@ table { border-collapse: collapse;}
 td, th { border: 1px solid black; padding: 10px }
 </style>
 </head>
-<h1>Changes from build #{{ build_number_prev }} to #{{ build_number }}</h1>
+<h1>Differences between builds #{{ build_number_prev }} and #{{ build_number }}</h1>
 {% for canonical_name, project  in projects.items()  %}
 <table>
 <tr>

@@ -234,7 +234,7 @@ def main():
 
     context = {
       "projects": projects,
-      "build_number_prev": 175,
+      "build_number_prev": previous_build_number,
       "build_number": build_number
     }
     with open('changes.html', 'w') as out:
