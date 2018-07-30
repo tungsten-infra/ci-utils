@@ -10,12 +10,12 @@ td, th { border: 1px solid black; padding: 10px }
 <table>
 <tr>
     <td><b>{{ project.name }}</b></td>
-    {% if project.revisions.previous == project.revisions.current %}
-    <td colspan=2>No changes ({{project.revisions.current}})</td>
+    {% if not project.changes %}
+    <td colspan=2>No changes ({{ project.revisions.current }})</td>
     </tr>
     {% else %}
-    <td>Prev commit: {{ project.revisions.previous }}</td>
-    <td colspan=3>Current commit: {{ project.revisions.current }}</td>
+    <td>Prev commit: {{ "Unknown" if project.revisions.previous is none else project.revisions.previous }}</td>
+    <td colspan=3>Current commit: {{ "Unknown" if project.revisions.current is none else project.revisions.current }}</td>
     </tr>
 <tr><th>Commit ID</th><th>Title</th><th>Author</th><th>Review</th><th>Bugs</th</tr>
 {% for change in project.changes %}

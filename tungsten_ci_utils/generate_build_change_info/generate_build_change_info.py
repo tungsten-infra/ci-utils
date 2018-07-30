@@ -9,6 +9,7 @@ import json
 import logging
 import pygit2
 from jinja2 import Template
+import io
 
 log = logging.getLogger(__name__)
 
@@ -55,11 +56,27 @@ def remove_keys(d, keys):
 def fetch_projects_from_job(branch, build_number, job_name):
     log.debug('fetch_projects_from_job: %s %s %s',
               branch, build_number, job_name)
+    projects = {}
     job_log_url = log_url(branch, build_number) + '/' + job_name
-    inventory = requests.get(job_log_url + '/zuul-info/inventory.yaml').text
-    gitlog = requests.get(job_log_url + '/zuul-info/gitlog.builder.md').text
-    inventory = yaml.load(inventory)
-    projects = inventory['all']['vars']['zuul']['projects']
+    inventory_url = job_log_url + '/zuul-info/inventory.yaml'
+    inventory_req = requests.get(inventory_url)
+    if inventory_req.status_code != 200:
+        log.warning("Non-200 status code for %s, skipping job %s %s",
+                    inventory_url, job_name, build_number)
+        return projects
+    inventory = yaml.load(inventory_req.text)
+    gitlog_url = job_log_url + '/zuul-info/gitlog.builder.md'
+    gitlog_req = requests.get(gitlog_url)
+    if gitlog_req.status_code != 200:
+        log.warning("Non-200 status code for %s, skipping job %s %s",
+                    gitlog_url, job_name, build_number)
+        return projects
+    gitlog = gitlog_req.text
+    try:
+        projects = inventory['all']['vars']['zuul']['projects']
+    except TypeError:
+        log.error(inventory)
+        sys.exit(1)
     project = None
     for line in gitlog.splitlines():
         if line.startswith('#'):
@@ -81,11 +98,12 @@ def fetch_all_projects_from_buildset(branch, build_number, job_list):
             canonical_name = p['canonical_name']
             if canonical_name in projects:
                 if projects[canonical_name] != p:
-                    print(json.dumps(projects[canonical_name], indent=4))
-                    print(json.dumps(p, indent=4))
-                    sys.exit(0)
-            else:
-                projects[canonical_name] = p
+                    log.error("Two different project states for %s: %s %s, error occured during fetching job %s. (Overriding)",
+                              canonical_name, branch, build_number, job_name)
+                    log.error("Existing: " +
+                              json.dumps(projects[canonical_name], indent=4))
+                    log.error("New: " + json.dumps(p, indent=4))
+            projects[canonical_name] = p
     return projects
 
 
@@ -113,16 +131,14 @@ def sync_git_repos(git_dir, projects, branch):
             subprocess.check_call(["git", "clone", "--single-branch",
                                    "--branch", branch, "https://" + canonical_name], cwd=git_dir)
         else:
+            log.info("Fetching origin for %s", canonical_name)
             subprocess.check_call(["git", "fetch", "origin"], cwd=repo_path)
-            subprocess.check_call(["git", "checkout", branch], cwd=repo_path)
-            subprocess.check_call(
-                ["git", "reset", "--hard", "origin/" + branch], cwd=repo_path)
 
 
 def get_commit_list_git_cli(previous_sha, current_sha, cwd=None, args=[]):
     """Use regular git command line to obtain a list of commit SHAs to dump (as
     strings)"""
-    if previous_sha == current_sha:
+    if previous_sha == current_sha or previous_sha is None or current_sha is None:
         return []
     cmd = ["git", "log", "--format=%H", previous_sha + '..' + current_sha]
     shas = subprocess.check_output(cmd, cwd=cwd).decode('utf8')
@@ -197,15 +213,23 @@ def dump_commit(sha, project, branch, repo_path=None):
 def get_changes(git_dir, projects, branch):
     for canonical_name, project in projects.items():
         repo_path = os.path.join(git_dir, project['short_name'])
-        sha_list = get_commit_list_git_cli(
-            project["revisions"]["previous"], project["revisions"]["current"], cwd=repo_path)
+        try:
+            sha_list = get_commit_list_git_cli(
+                project["revisions"]["previous"], project["revisions"]["current"], cwd=repo_path)
+        except subprocess.CalledProcessError as cpe:
+            log.warning("Failed to obtain sha list for %s, %s",
+                        canonical_name, cpe)
+            project["errors"] = project.get("errors", [])
+            project["errors"].append("Failed to obtain sha list")
+            project["changes"] = []
+            return
         commits = [dump_commit(sha, project, branch, repo_path)
                    for sha in sha_list]
         project["changes"] = commits
 
 
 def render_changes(projects, context):
-    with open('changes.html.tpl', 'r') as template_file:
+    with io.open('changes.html.tpl', 'r', encoding='utf-8') as template_file:
         template = template_file.read()
     template = Template(template)
     out = template.render(**context)
@@ -253,9 +277,9 @@ def main():
         with open('projects_prev.json', 'w') as pfile:
             json.dump(previous_projects, pfile, indent=4)
     else:
-        with open('projects.json', 'r') as pfile:
+        with io.open('projects.json', 'r', encoding='utf-8') as pfile:
             current_projects = json.load(pfile)
-        with open('projects_prev.json', 'r') as pfile:
+        with io.open('projects_prev.json', 'r', encoding='utf-8') as pfile:
             previous_projects = json.load(pfile)
 
     merge_projects(previous_projects, current_projects)
@@ -274,7 +298,9 @@ def main():
         "build_number_prev": previous_build_number,
         "build_number": build_number
     }
-    with open('changes.html', 'w') as out:
+    with open('changes.json', 'w') as out:
+        json.dump(projects, out, indent=4)
+    with io.open('changes.html', 'w', encoding='utf-8') as out:
         out.write(render_changes(projects, context))
 
 
