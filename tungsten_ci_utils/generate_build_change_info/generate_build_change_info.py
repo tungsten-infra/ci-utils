@@ -128,8 +128,10 @@ def sync_git_repos(git_dir, projects, branch):
     for canonical_name, project in projects.items():
         repo_path = os.path.join(git_dir, project['short_name'])
         if not os.path.isdir(repo_path):
-            subprocess.check_call(["git", "clone", "--single-branch",
-                                   "--branch", branch, "https://" + canonical_name], cwd=git_dir)
+            # TODO check for remote branch existence and clone with
+            # --single-branch to save time
+            subprocess.check_call(
+                ["git", "clone", "https://" + canonical_name], cwd=git_dir)
         else:
             log.info("Fetching origin for %s", canonical_name)
             subprocess.check_call(["git", "fetch", "origin"], cwd=repo_path)
