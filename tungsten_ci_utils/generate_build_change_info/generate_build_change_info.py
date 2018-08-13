@@ -105,6 +105,11 @@ def fetch_all_projects_from_buildset(branch, build_number, config):
             canonical_name = p['canonical_name']
             if canonical_name in projects:
                 if projects[canonical_name] != p:
+                    # TODO support the case when this happens legitimately,
+                    # e.g. when we'll have two different branch checkouts of
+                    # the same project (contrail-dpdk for different SKUs)
+                    # The logic should be rewritten to find differences between
+                    # jobs and not the whole set of projects in buildset.
                     log.error("Two different project states for %s: %s %s, "
                               "error occured during fetching job %s. "
                               "(Overriding)",
@@ -339,11 +344,21 @@ def load_config():
 def fetch_json(source):
     if source.startswith('http'):
         req = requests.get(source)
+        if req.status_code != 200:
+            log.warning('JSON HTTP request failed for %s: (%s) %s',
+                        source, req.status_code, req.text)
+            return {}
         json_str = req.text
     else:
         with open(source, 'r') as source_file:
             json_str = source_file.read()
-    return json.loads(json_str)
+    try:
+        obj = json.loads(json_str)
+        return obj
+    except Exception as e:
+        log.warning('JSON HTTP decoding failed for %s: %s %s',
+                    source, e, req.text)
+        return {}
 
 
 def main():
