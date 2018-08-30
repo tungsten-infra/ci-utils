@@ -57,12 +57,16 @@ def pgrep(word):
     return pids
 
 
-if __name__ == "__main__":
+def main():
     job_pids = pgrep(sys.argv[1])
-    if len(job_pids) > 0:
-        # find_child will cause the JOB to fail
+    if len(job_pids) > 1:
+        # find_child will cause the job to fail
         # find_ancestor will cause the job to be ABORTED and RESTARTED
         youngest_pid = find_child(job_pids)
+    elif len(job_pids) == 1:
+        print(
+            'There is only one executor process, waiting for more to kill the job')
+        return
     else:
         print('No running job processes found, exiting')
         return
@@ -70,3 +74,7 @@ if __name__ == "__main__":
     if youngest_pid is not None:
         youngest_proc = psutil.Process(youngest_pid)
         youngest_proc.kill()
+
+
+if __name__ == "__main__":
+    main()
