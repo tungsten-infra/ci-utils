@@ -1,0 +1,163 @@
+all:
+  hosts:
+    kolla-aio:
+      ansible_host: 10.87.72.60
+      ansible_port: 22
+      ansible_user: zuul
+      nodepool:
+        az: nova
+        cloud: jnpr-contrail-ci-c
+        interface_ip: 10.87.72.60
+        label: c7-systest-c
+        private_ipv4: 172.16.8.29
+        provider: juniper-contrail-ci-c
+        public_ipv4: 10.87.72.60
+        public_ipv6: ''
+        region: RegionOne
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
+    cloud_orchestrator: openstack
+    contrail_container_tag: 44276-5
+    contrail_docker_registry: 10.84.5.81:33225
+    contrail_package_repository: http://10.84.5.81/pulp/repos/44276-5-centos
+    contrail_packaging:
+      debian_dir: null
+      docker_version: master
+      full_version: 5.1.0~ci44276.5
+      name: contrail
+      repo_name: 44276-5
+      repo_names:
+        CentOS: 44276-5-centos
+        RedHat: 44276-5-rhel-queens
+      target_dir: contrail-5.1.0
+      version:
+        distrib: ci44276.5
+        epoch: null
+        public: master
+        upstream: 5.1.0
+    docker_registry_port: '33225'
+    kolla_docker_distro: centos
+    kolla_version: queens
+    openstack_version: queens
+    setup_docker_registry: true
+    zuul:
+      _inheritance_path:
+      - '<Job base branches: None source: Juniper/contrail-project-config/zuul.d/jobs.yaml@master#25>'
+      - '<Job contrail-base2 branches: None source: Juniper/contrail-project-config/zuul.d/jobs.yaml@master#375>'
+      - '<Job contrail-sanity-base branches: None source: Juniper/contrail-zuul-jobs/zuul.d/contrail-jobs.yaml@master#103>'
+      - '<Job contrail-sanity-centos7-kolla-base branches: None source: Juniper/contrail-zuul-jobs/zuul.d/contrail-jobs.yaml@master#110>'
+      - '<Job contrail-sanity-centos7-kolla-queens branches: None source: Juniper/contrail-zuul-jobs/zuul.d/contrail-jobs.yaml@master#138>'
+      - '<Job contrail-sanity-centos7-kolla-queens branches: None source: Juniper/contrail-project-config/zuul.d/projects.yaml@master#42>'
+      _projects:
+        review.opencontrail.org/Juniper/contrail-ansible-deployer:
+          canonical_hostname: review.opencontrail.org
+          canonical_name: review.opencontrail.org/Juniper/contrail-ansible-deployer
+          name: Juniper/contrail-ansible-deployer
+          required: true
+          short_name: contrail-ansible-deployer
+          src_dir: src/review.opencontrail.org/Juniper/contrail-ansible-deployer
+        review.opencontrail.org/Juniper/contrail-kolla-ansible:
+          canonical_hostname: review.opencontrail.org
+          canonical_name: review.opencontrail.org/Juniper/contrail-kolla-ansible
+          name: Juniper/contrail-kolla-ansible
+          required: true
+          short_name: contrail-kolla-ansible
+          src_dir: src/review.opencontrail.org/Juniper/contrail-kolla-ansible
+        review.opencontrail.org/Juniper/contrail-test:
+          canonical_hostname: review.opencontrail.org
+          canonical_name: review.opencontrail.org/Juniper/contrail-test
+          name: Juniper/contrail-test
+          required: true
+          short_name: contrail-test
+          src_dir: src/review.opencontrail.org/Juniper/contrail-test
+        review.opencontrail.org/Juniper/contrail-test-ci:
+          canonical_hostname: review.opencontrail.org
+          canonical_name: review.opencontrail.org/Juniper/contrail-test-ci
+          name: Juniper/contrail-test-ci
+          required: true
+          short_name: contrail-test-ci
+          src_dir: src/review.opencontrail.org/Juniper/contrail-test-ci
+        review.opencontrail.org/Juniper/contrail-zuul-jobs:
+          canonical_hostname: review.opencontrail.org
+          canonical_name: review.opencontrail.org/Juniper/contrail-zuul-jobs
+          name: Juniper/contrail-zuul-jobs
+          required: false
+          short_name: contrail-zuul-jobs
+          src_dir: src/review.opencontrail.org/Juniper/contrail-zuul-jobs
+      branch: master
+      build: 7fb2aaa79f3a4a9daffa983f279378d6
+      buildset: 923f20fd7b8d44dfad21e596dcd64123
+      change: '44276'
+      change_url: https://review.opencontrail.org/44276
+      executor:
+        hostname: ze01-jnpr
+        log_root: /var/lib/zuul/builds/7fb2aaa79f3a4a9daffa983f279378d6/work/logs
+        result_data_file: /var/lib/zuul/builds/7fb2aaa79f3a4a9daffa983f279378d6/work/results.json
+        src_root: /var/lib/zuul/builds/7fb2aaa79f3a4a9daffa983f279378d6/work/src
+        work_root: /var/lib/zuul/builds/7fb2aaa79f3a4a9daffa983f279378d6/work
+      items:
+      - branch: master
+        change: '44401'
+        change_url: https://review.opencontrail.org/44401
+        patchset: '1'
+        project:
+          canonical_hostname: review.opencontrail.org
+          canonical_name: review.opencontrail.org/Juniper/contrail-zuul-jobs
+          name: Juniper/contrail-zuul-jobs
+          short_name: contrail-zuul-jobs
+          src_dir: src/review.opencontrail.org/Juniper/contrail-zuul-jobs
+      - branch: master
+        change: '44276'
+        change_url: https://review.opencontrail.org/44276
+        patchset: '5'
+        project:
+          canonical_hostname: review.opencontrail.org
+          canonical_name: review.opencontrail.org/Juniper/contrail-ansible-deployer
+          name: Juniper/contrail-ansible-deployer
+          short_name: contrail-ansible-deployer
+          src_dir: src/review.opencontrail.org/Juniper/contrail-ansible-deployer
+      job: contrail-sanity-centos7-kolla-queens
+      jobtags: []
+      patchset: '5'
+      pipeline: check
+      project:
+        canonical_hostname: review.opencontrail.org
+        canonical_name: review.opencontrail.org/Juniper/contrail-ansible-deployer
+        name: Juniper/contrail-ansible-deployer
+        short_name: contrail-ansible-deployer
+        src_dir: src/review.opencontrail.org/Juniper/contrail-ansible-deployer
+      projects:
+      - canonical_hostname: review.opencontrail.org
+        canonical_name: review.opencontrail.org/Juniper/contrail-kolla-ansible
+        name: Juniper/contrail-kolla-ansible
+        required: true
+        short_name: contrail-kolla-ansible
+        src_dir: src/review.opencontrail.org/Juniper/contrail-kolla-ansible
+      - canonical_hostname: review.opencontrail.org
+        canonical_name: review.opencontrail.org/Juniper/contrail-ansible-deployer
+        name: Juniper/contrail-ansible-deployer
+        required: true
+        short_name: contrail-ansible-deployer
+        src_dir: src/review.opencontrail.org/Juniper/contrail-ansible-deployer
+      - canonical_hostname: review.opencontrail.org
+        canonical_name: review.opencontrail.org/Juniper/contrail-test-ci
+        name: Juniper/contrail-test-ci
+        required: true
+        short_name: contrail-test-ci
+        src_dir: src/review.opencontrail.org/Juniper/contrail-test-ci
+      - canonical_hostname: review.opencontrail.org
+        canonical_name: review.opencontrail.org/Juniper/contrail-test
+        name: Juniper/contrail-test
+        required: true
+        short_name: contrail-test
+        src_dir: src/review.opencontrail.org/Juniper/contrail-test
+      - canonical_hostname: review.opencontrail.org
+        canonical_name: review.opencontrail.org/Juniper/contrail-zuul-jobs
+        name: Juniper/contrail-zuul-jobs
+        required: false
+        short_name: contrail-zuul-jobs
+        src_dir: src/review.opencontrail.org/Juniper/contrail-zuul-jobs
+      ref: refs/changes/76/44276/5
+      tenant: opencontrail
+      timeout: 28800
+      voting: false
