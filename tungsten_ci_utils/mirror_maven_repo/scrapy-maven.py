@@ -3,10 +3,17 @@
 import scrapy
 import re
 
+# crawls a website starting at the provided link
+# extracts all links from the website and either follows them and repeats the process
+# or prints out the link when it's pointing to an artifact
+# an 'artifact' is considered to be a file with an extension
+# ignores / does not follow links from the IGNORE_LIST
+
+# run command: scrapy runspider scrapy-maven.py -a start_url='http://localhost:8443/maven-repo'
+
 
 class MavenRepositorySpider(scrapy.Spider):
     name = 'maven-repo-spider'
-    start_urls = ['http://sdnpoc-vrodev.englab.juniper.net/vco-repo']
 
     custom_settings = {
         'LOG_LEVEL': 'DEBUG'
@@ -14,6 +21,10 @@ class MavenRepositorySpider(scrapy.Spider):
 
     IGNORE_LIST = ['javadoc/']
     EXTENSION_REGEX = '\.[a-zA-Z]*$'
+
+    def __init__(self, *args, **kwargs):
+        super(MavenRepositorySpider, self).__init__(*args, **kwargs)
+        self.start_urls = [self.start_url]
 
     def parse(self, response):
         for next_page in response.css('a'):
