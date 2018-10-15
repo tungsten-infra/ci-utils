@@ -1,0 +1,3 @@
+[submodule "tungsten_ci_utils/jobs_grapher"]
+	path = tungsten_ci_utils/jobs_grapher
+	url = https://github.com/wurbanski/zuul-jobs-grapher
