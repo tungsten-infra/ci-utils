@@ -1,0 +1,5 @@
+configparser
+lxml
+db
+peewee
+mysql-python
