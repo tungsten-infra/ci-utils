@@ -11,11 +11,11 @@ import org.slf4j.Logger
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-def retentionCount = 0;
-def retentionDays = 0;
+def retentionCount = 15;
+def retentionDays = 30;
 def repositoryName = 'BartsDockerRepo';
-def whitelist = ["latest", "ocata", "newton"].toArray();
-
+def whitelistCore = ["latest", "ocata", "newton"].toArray();
+def whitelist = ["latest","40", "94", "122", "129", "161", "214", "309"].toArray();
 
 log.info(":::Cleanup script started!");
 MaintenanceService service = container.lookup("org.sonatype.nexus.repository.maintenance.MaintenanceService");
@@ -42,49 +42,54 @@ if(components != null) {
 
         log.info("Processing Component - ${comp.name()}, version: ${comp.version()}");
         log.info("----------");
-        
-        // log.info(fruit);
         def fruitEnd = "null";
-        def splited = comp.version();
-        def spl = splited.split("-");
-
-        for(i = 0; i < spl.length; i++ ){
+        for(i = 0; i < whitelistCore.length; i++){
+            def fruitJuice = whitelistCore.collect{item -> item.contains(comp.version())}
             
-            for(j = 0; j < whitelist.length; j++){
-                def fruit = whitelist.collect{item -> item.contains(spl[i])}
-                if(fruit[j] == true){
-                    fruitEnd = "true";
-                    log.info(spl[i]);
-                    log.info("true");
-                    return fruitEnd;
-                }else{
-                    fruitEnd = "false";
-                    log.info("false");
-                    log.info(spl[i]);
+            if(fruitJuice[i] == true){
+                fruitEnd = "true";
+                log.info("Fruit Juice! "+ fruitJuice[i] + " " + comp.version());
+                log.info("----------");
+                return fruitEnd;
+            }else{
+            
+                def splited = comp.version();
+                def spl = splited.split("-");
+
+                for(j = 0; j < spl.length; j++ ){            
+                    for(k = 0; k < whitelist.length; k++){
+                        def fruit = whitelist.collect{item -> item.contains(spl[j])}
+                        if(fruit[k] == true){
+                            fruitEnd = "true";
+                            log.info(spl[j]+ " true");
+                            return fruitEnd;
+                        }else{
+                            fruitEnd = "false";
+                            log.info(spl[j]+ " false");
+                        }
+                    }
                 }
             }
         }
-
         log.info("----------");
-        log.info(fruitEnd);
+        log.info(fruitEnd + " Result");
         log.info("----------");
-        log.info("result");
 
 
         if(fruitEnd == "false"){
             log.info("am I?");
             log.info(previousComp);
 
-            // if(previousComp.equals(comp.name())) {
+            if(previousComp.equals(comp.name())) {
             // for test purposes check of prev name commented out
             
-            if(fruitEnd == "false"){
+            // if(fruitEnd == "false"){
                 compCount++;
                 log.info("ComCount: ${compCount}, ReteCount: ${retentionCount}");
 
                 if (compCount > retentionCount) {
                     log.info("CompDate: ${comp.lastUpdated()} RetDate: ${retentionDate}");
-                    // if(comp.lastUpdated().isBefore(retentionDate)) {
+                    if(comp.lastUpdated().isBefore(retentionDate)) {
                         log.info("compDate after retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
                         log.info("deleting ${comp.group()}, ${comp.name()}, version: ${comp.version()}");
 
@@ -94,8 +99,9 @@ if(components != null) {
                         // ------------------------------------------------
 
                         log.info("component deleted");
+                        log.info("----------");
                         deletedComponentCount++;
-                    // }
+                    }
                 }
             } else {
                 compCount = 1;
@@ -105,6 +111,7 @@ if(components != null) {
             log.info("Component skipped: ${comp.name()}");
         }
     }
-
+    log.info("----------");
     log.info("Deleted Component count: ${deletedComponentCount}");
+    log.info("----------");
 }
