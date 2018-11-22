@@ -15,7 +15,7 @@ def retentionDays = 15;
 def retentionCount = 15;
 def repositoryName = 'BartsDockerRepo';
 def core = ["ocata", "newton", "queens", "latest"].toArray();
-def whitelisted_tag_suffixes = ["latest", "ocata", "newton", "queens", "latest","40", "94", "122", "129", "161", "214", "309", "360"].toArray();
+def whitelisted_tag_suffixes = ["latest", "ocata", "newton", "queens", "40", "94", "122", "129", "161", "214", "309", "360"].toArray();
 
 log.info(":::Cleanup script started!");
 MaintenanceService service = container.lookup("org.sonatype.nexus.repository.maintenance.MaintenanceService");
@@ -39,26 +39,26 @@ if(components != null) {
     def listOfComponents = ImmutableList.copyOf(components);
     def previousComp = listOfComponents.head().name();
     def coreList = [0,0,0,0];
-    def fruitEnd = true;
+    def checkValue = true;
     listOfComponents.reverseEach{comp ->
 
         def splited = comp.version();
         def spl = splited.split("-");
         for (i = 0; i < core.length; i++) {
-            fruitEnd = true;
+            checkValue = true;
             log.info(comp.name() + " " + core[i]);
             if (comp.name() == core[i]) {
                 coreList[i]++;
                 if (coreList[i] > retentionCount) {
                     for (j = spl.length - 1; j < spl.length; j++) {
                         for (k = 0; k < whitelisted_tag_suffixes.length; k++) {
-                            def fruit = whitelisted_tag_suffixes.collect { item -> item.contains(spl[j])}
-                            if (fruit[k] == true) {
-                                fruitEnd = true;
+                            def finalCheck = whitelisted_tag_suffixes.collect { item -> item.contains(spl[j])}
+                            if (finalCheck[k] == true) {
+                                checkValue = true;
                                 log.info(spl[j] + " true");
-                                return fruitEnd;
+                                return checkValue;
                             } else {
-                                fruitEnd = false;
+                                checkValue = false;
                                 log.info(spl[j] + " false");
                             }
                             
@@ -68,7 +68,7 @@ if(components != null) {
 
                 }
 
-                if(fruitEnd == false){
+                if(checkValue == false){
 
                     log.info("CompDate: ${comp.lastUpdated()} RetDate: ${retentionDate}");
                     if(comp.lastUpdated().isBefore(retentionDate)) {
