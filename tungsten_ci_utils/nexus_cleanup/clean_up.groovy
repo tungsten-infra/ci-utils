@@ -12,10 +12,8 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 def retentionDays = 15;
-def retentionCount = 15;
 def repositoryName = 'BartsDockerRepo';
-def core = ["ocata", "newton", "queens", "latest"].toArray();
-def whitelisted_tag_suffixes = ["latest", "ocata", "newton", "queens", "40", "94", "122", "129", "161", "214", "309", "360"].toArray();
+def whitelisted_tag_suffixes = ["latest", "40", "94", "122", "129", "161", "214", "309", "360"].toArray();
 
 log.info(":::Cleanup script started!");
 MaintenanceService service = container.lookup("org.sonatype.nexus.repository.maintenance.MaintenanceService");
@@ -25,73 +23,67 @@ def components = null;
 try {
     tx.begin();
     components = tx.browseComponents(tx.findBucket(repo));
-}catch(Exception e){
-    log.info("Error: "+e);
-}finally{
-    if(tx!=null)
+} catch (Exception e) {
+    log.info("Error: " + e);
+} finally {
+    if (tx != null)
         tx.close();
 }
 
-if(components != null) {
+if (components != null) {
     def retentionDate = DateTime.now().minusDays(retentionDays).dayOfMonth().roundFloorCopy();
     int deletedComponentCount = 0;
     int compCount = 0;
     def listOfComponents = ImmutableList.copyOf(components);
     def previousComp = listOfComponents.head().name();
-    def coreList = [0,0,0,0];
-    def checkValue = true;
-    listOfComponents.reverseEach{comp ->
+    def checkValue = null;
+    listOfComponents.reverseEach {
+        comp ->
 
         def splited = comp.version();
         def spl = splited.split("-");
-        for (i = 0; i < core.length; i++) {
-            checkValue = true;
-            log.info(comp.name() + " " + core[i]);
-            if (comp.name() == core[i]) {
-                coreList[i]++;
-                if (coreList[i] > retentionCount) {
-                    for (j = spl.length - 1; j < spl.length; j++) {
-                        for (k = 0; k < whitelisted_tag_suffixes.length; k++) {
-                            def finalCheck = whitelisted_tag_suffixes.collect { item -> item.contains(spl[j])}
-                            if (finalCheck[k] == true) {
-                                checkValue = true;
-                                log.info(spl[j] + " true");
-                                return checkValue;
-                            } else {
-                                checkValue = false;
-                                log.info(spl[j] + " false");
-                            }
-                            
-                        }
-                        
-                    }
-
+        for (i = spl.length - 1; i < spl.length; i++) {
+            checkValue = null;
+            for (j = 0; j < whitelisted_tag_suffixes.length; j++) {
+                Pattern pattern = Pattern.compile(whitelisted_tag_suffixes[j]);
+                Matcher matcher = pattern.matcher(spl[i]);
+                boolean found = matcher.matches();
+                if (found == true) {
+                    log.info("true " + j);
+                    checkValue = true;
+                    return checkValue;
+                } else {
+                    checkValue = false;
+                    log.info("false");
                 }
-
-                if(checkValue == false){
-
-                    log.info("CompDate: ${comp.lastUpdated()} RetDate: ${retentionDate}");
-                    if(comp.lastUpdated().isBefore(retentionDate)) {
-                        log.info("compDate after retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
-                        log.info("deleting ${comp.name()}, version: ${comp.version()}");
-                        // ------------------------------------------------
-                        // uncomment to delete components and their assets
-                        // service.deleteComponent(repo, comp);
-                        // ------------------------------------------------
-                        log.info("component deleted");
-                        log.info("----------");
-                        deletedComponentCount++;
-                    }
-        }else{
+            }
+            if(checkValue == null){
+                checkValue = false;
+            }
+            
+        }
+        if (checkValue == false) {
+            log.info("CompDate: ${comp.lastUpdated()} RetDate: ${retentionDate}");
+                if (comp.lastUpdated() > retentionDate) {
+                    log.info("compDate after retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
+                    log.info("deleting ${comp.name()}, version: ${comp.version()}");
+                    // ------------------------------------------------
+                    // uncomment to delete components and their assets
+                    // service.deleteComponent(repo, comp);
+                    // ------------------------------------------------
+                    log.info("component deleted");
+                    log.info("----------");
+                    deletedComponentCount++;
+                }
+        } else {
             log.info("Component skipped: ${comp.name()} ${comp.version()}");
         }
-            } else {
-                log.info('wuuuuut')
-            }
 
-        }        
+
+
     }
     log.info("----------");
     log.info("Deleted Component count: ${deletedComponentCount}");
     log.info("----------");
+
 }
