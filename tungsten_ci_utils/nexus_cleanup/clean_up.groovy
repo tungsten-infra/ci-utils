@@ -51,6 +51,7 @@ if (components != null) {
                 if (found == true) {
                     log.info("true " + j);
                     checkValue = true;
+                    log.info("Component skipped: ${comp.name()} ${comp.version()}");
                     return checkValue;
                 } else {
                     checkValue = false;
@@ -69,7 +70,7 @@ if (components != null) {
                     log.info("deleting ${comp.name()}, version: ${comp.version()}");
                     // ------------------------------------------------
                     // uncomment to delete components and their assets
-                    // service.deleteComponent(repo, comp);
+                    service.deleteComponent(repo, comp);
                     // ------------------------------------------------
                     log.info("component deleted");
                     log.info("----------");
