@@ -13,7 +13,7 @@ import java.util.regex.Pattern
 
 def retentionDays = 15;
 def repositoryName = 'BartsDockerRepo';
-def whitelisted_tag_suffixes = ["latest", "40", "94", "122", "129", "161", "214", "309", "360"].toArray();
+def whitelisted_tag_suffixes = ["ocata", "newton", "latest", "40", "94", "122", "129", "161", "214", "309", "360"].toArray();
 
 log.info(":::Cleanup script started!");
 MaintenanceService service = container.lookup("org.sonatype.nexus.repository.maintenance.MaintenanceService");
