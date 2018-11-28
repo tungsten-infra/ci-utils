@@ -40,6 +40,7 @@ if (components != null) {
     def checkValue = null;
     retentionCounter = 0;
     def prev = null;
+    def splCheck = null;
     listOfComponents.reverseEach {  comp ->
 
         def splited = comp.version();
@@ -59,13 +60,18 @@ if (components != null) {
                 }
             }
             log.info("else check " + prev + " " + spl[i - 1]);
-            if ((spl[i - 1]) == prev) {
+            if(spl.length < 3){
+                splCheck = spl[i - 1];
+            } else {
+                splCheck = spl[i - 2] + "-" + spl[i - 1];
+            }
+            if (splCheck == prev) {
                 retentionCounter++;
                 log.info(retentionCounter + " ", "retention monitor")
                 checkValue = false;
                 log.info("false " + comp.version());
             } else {
-                prev = spl[i - 1];
+                prev = splCheck;
                 retentionCounter = 1;
             }
         }
