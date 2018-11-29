@@ -8,9 +8,6 @@ import org.sonatype.nexus.script.plugin.internal.provisioning.RepositoryApiImpl;
 import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.ArrayList;
 
 def retentionDays = 15;
 def tagList = [];
@@ -36,83 +33,61 @@ if (components != null) {
     int deletedComponentCount = 0;
     def listOfComponents = ImmutableList.copyOf(components);
     def previousComp = listOfComponents.head().name();
-    def checkValue = null;
 
-    listOfComponents.reverseEach {
-        comp ->
-
-            def splited = comp.version();
+    listOfComponents.reverseEach { comp ->
+        def splited = comp.version();
         def spl = splited.split("-");
 
             if ((spl[spl.length - 1].isNumber()) == true) {
                 if (Double.parseDouble(spl[spl.length - 1]) < 1) {
-                    log.info("less than 1")
                     String numbers = spl[spl.length - 1].substring(spl[spl.length - 1].length() - 3, spl[spl.length - 1].length());
                     spl[spl.length - 1] = numbers;
-                    log.info(numbers);
                 }
-            log.info(spl[spl.length - 1])
-            checkValue = null;
 
             for (j = 0; j < whitelisted_tag_suffixes.length; j++) {
-                Pattern pattern = Pattern.compile(whitelisted_tag_suffixes[j]);
-                Matcher matcher = pattern.matcher(spl[spl.length - 1]);
-                boolean found = matcher.matches();
-                if (found == true) {
-                    log.info("true " + j);
+                if (spl[spl.length - 1] == whitelisted_tag_suffixes[j]) {
                     checkValue = true;
                     log.info("Component skipped: ${comp.name()} ${comp.version()}");
                     return checkValue;
                 } else {
                     if (whitelisted_tag_suffixes.count(spl[spl.length - 1]) == 0) {
-                        if (spl[spl.length - 1].toInteger() > 1) {
-                            if (tagList.count(spl[spl.length - 1].toInteger()) == 0) {
-                                tagList.add(spl[spl.length - 1].toInteger());
-                                println tagList.sort();
-
-                            }
-                        } else {
-                            tagList.add(Double.parseDouble(spl[spl.length - 1]));
-                        }
+                        if (tagList.count(spl[spl.length - 1].toInteger()) == 0) {
+                            tagList.add(spl[spl.length - 1].toInteger());
+                            println tagList.sort();
+                        }                    
                     }
                 }
             }
         }
     }
 
-    listOfComponents.reverseEach {
-        comp ->
-        
+    listOfComponents.reverseEach { comp ->
         checkValue = null;
         def splited = comp.version();
         def spl = splited.split("-");
         def retentionList = tagList.subList(0, tagList.size() - 15);
 
-            if ((spl[spl.length - 1].isNumber()) == true) {
-                if (Double.parseDouble(spl[spl.length - 1]) < 1) {
-                    spl[spl.length - 1] = spl[spl.length - 1].substring(spl[spl.length - 1].length() - 3, spl[spl.length - 1].length());
-                }
+        if ((spl[spl.length - 1].isNumber()) == true) {
+            if (Double.parseDouble(spl[spl.length - 1]) < 1) {
+                spl[spl.length - 1] = spl[spl.length - 1].substring(spl[spl.length - 1].length() - 3, spl[spl.length - 1].length());
             }
-            if (whitelisted_tag_suffixes.count(spl[spl.length - 1]) == 0) {
-                log.info("whitelist clear")
-                if (retentionList.count(spl[spl.length - 1].toInteger()) > 0) {
-                    log.info("false")
-                    checkValue = false;
-                }
+        }
+        if (whitelisted_tag_suffixes.count(spl[spl.length - 1]) == 0) {
+            if (retentionList.count(spl[spl.length - 1].toInteger()) > 0) {
+                checkValue = false;
             }
+        }
         
-        println retentionList;
-        log.info(String.valueOf(checkValue))
         if (checkValue == false) {
+            log.info("----------");
             log.info("CompDate: ${comp.lastUpdated()} RetDate: ${retentionDate}");
             if (comp.lastUpdated() > retentionDate) {
-                log.info("compDate after retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
+                log.info("retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
                 log.info("deleting ${comp.name()}, version: ${comp.version()}");
                 // ------------------------------------------------
                 // uncomment to delete components and their assets
                 // service.deleteComponent(repo, comp);
                 // ------------------------------------------------
-                log.info("component deleted");
                 log.info("----------");
                 deletedComponentCount++;
             }
@@ -120,8 +95,5 @@ if (components != null) {
             log.info("Component skipped: ${comp.name()} ${comp.version()}");
         }
     }
-
-    log.info("----------");
-    log.info("Deleted Component count: ${deletedComponentCount}");
-    log.info("----------");
+    log.info("\n\nDeleted Component count: ${deletedComponentCount} \n");
 }
