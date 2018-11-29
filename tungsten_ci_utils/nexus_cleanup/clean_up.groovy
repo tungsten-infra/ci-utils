@@ -44,21 +44,19 @@ if (components != null) {
             def splited = comp.version();
         def spl = splited.split("-");
 
-        for (i = spl.length - 1; i < spl.length; i++) {
-            if ((spl[i].isNumber()) == true) {
-                if (Double.parseDouble(spl[i]) < 1) {
+            if ((spl[spl.length - 1].isNumber()) == true) {
+                if (Double.parseDouble(spl[spl.length - 1]) < 1) {
                     log.info("less than 1")
-                    String numbers = spl[i].substring(spl[i].length() - 3, spl[i].length());
-                    spl[i] = numbers;
+                    String numbers = spl[spl.length - 1].substring(spl[spl.length - 1].length() - 3, spl[spl.length - 1].length());
+                    spl[spl.length - 1] = numbers;
                     log.info(numbers);
                 }
-            }
-            log.info(spl[i])
+            log.info(spl[spl.length - 1])
             checkValue = null;
 
             for (j = 0; j < whitelisted_tag_suffixes.length; j++) {
                 Pattern pattern = Pattern.compile(whitelisted_tag_suffixes[j]);
-                Matcher matcher = pattern.matcher(spl[i]);
+                Matcher matcher = pattern.matcher(spl[spl.length - 1]);
                 boolean found = matcher.matches();
                 if (found == true) {
                     log.info("true " + j);
@@ -66,15 +64,15 @@ if (components != null) {
                     log.info("Component skipped: ${comp.name()} ${comp.version()}");
                     return checkValue;
                 } else {
-                    if (whitelisted_tag_suffixes.count(spl[i]) == 0) {
-                        if (spl[i].toInteger() > 1) {
-                            if (tagList.count(spl[i].toInteger()) == 0) {
-                                tagList.add(spl[i].toInteger());
+                    if (whitelisted_tag_suffixes.count(spl[spl.length - 1]) == 0) {
+                        if (spl[spl.length - 1].toInteger() > 1) {
+                            if (tagList.count(spl[spl.length - 1].toInteger()) == 0) {
+                                tagList.add(spl[spl.length - 1].toInteger());
                                 println tagList.sort();
 
                             }
                         } else {
-                            tagList.add(Double.parseDouble(spl[i]));
+                            tagList.add(Double.parseDouble(spl[spl.length - 1]));
                         }
                     }
                 }
@@ -84,24 +82,25 @@ if (components != null) {
 
     listOfComponents.reverseEach {
         comp ->
-            checkValue = null;
+        
+        checkValue = null;
         def splited = comp.version();
         def spl = splited.split("-");
         def retentionList = tagList.subList(0, tagList.size() - 15);
-        for (i = spl.length - 1; i < spl.length; i++) {
-            if ((spl[i].isNumber()) == true) {
-                if (Double.parseDouble(spl[i]) < 1) {
-                    spl[i] = spl[i].substring(spl[i].length() - 3, spl[i].length());
+
+            if ((spl[spl.length - 1].isNumber()) == true) {
+                if (Double.parseDouble(spl[spl.length - 1]) < 1) {
+                    spl[spl.length - 1] = spl[spl.length - 1].substring(spl[spl.length - 1].length() - 3, spl[spl.length - 1].length());
                 }
             }
-            if (whitelisted_tag_suffixes.count(spl[i]) == 0) {
+            if (whitelisted_tag_suffixes.count(spl[spl.length - 1]) == 0) {
                 log.info("whitelist clear")
-                if (retentionList.count(spl[i].toInteger()) > 0) {
+                if (retentionList.count(spl[spl.length - 1].toInteger()) > 0) {
                     log.info("false")
                     checkValue = false;
                 }
             }
-        }
+        
         println retentionList;
         log.info(String.valueOf(checkValue))
         if (checkValue == false) {
