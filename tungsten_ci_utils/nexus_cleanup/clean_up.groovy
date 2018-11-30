@@ -34,46 +34,39 @@ if (components != null) {
     def listOfComponents = ImmutableList.copyOf(components);
     def previousComp = listOfComponents.head().name();
 
+// comp.version() expected to be in a format {{ os }}-{{ realse }}-{{ branch }}-{{ build }} e.g. rhel-queens-master-386 
+
     listOfComponents.reverseEach { comp ->
+
         def splited = comp.version();
         def spl = splited.split("-");
+        def build_number = spl[spl.length - 1];
 
-            if ((spl[spl.length - 1].isNumber()) == true) {
-                if (Double.parseDouble(spl[spl.length - 1]) < 1) {
-                    String numbers = spl[spl.length - 1].substring(spl[spl.length - 1].length() - 3, spl[spl.length - 1].length());
-                    spl[spl.length - 1] = numbers;
-                }
-
-            for (j = 0; j < whitelisted_tag_suffixes.length; j++) {
-                if (spl[spl.length - 1] == whitelisted_tag_suffixes[j]) {
-                    checkValue = true;
-                    log.info("Component skipped: ${comp.name()} ${comp.version()}");
-                    return checkValue;
-                } else {
-                    if (whitelisted_tag_suffixes.count(spl[spl.length - 1]) == 0) {
-                        if (tagList.count(spl[spl.length - 1].toInteger()) == 0) {
-                            tagList.add(spl[spl.length - 1].toInteger());
-                            println tagList.sort();
-                        }                    
-                    }
+        for (j = 0; j < whitelisted_tag_suffixes.length; j++) {
+            if (build_number == whitelisted_tag_suffixes[j]) {
+                checkValue = true;
+                log.info("Component skipped: ${comp.name()} ${comp.version()}");
+                return checkValue;
+            } else {
+                if (whitelisted_tag_suffixes.count(build_number) == 0) {
+                    if (tagList.count(build_number.toInteger()) == 0) {
+                        tagList.add(build_number.toInteger());
+                        println tagList.sort();
+                    }                    
                 }
             }
-        }
+        }        
     }
 
     listOfComponents.reverseEach { comp ->
         checkValue = null;
         def splited = comp.version();
         def spl = splited.split("-");
+        def build_number = spl[spl.length - 1];
         def retentionList = tagList.subList(0, tagList.size() - 15);
 
-        if ((spl[spl.length - 1].isNumber()) == true) {
-            if (Double.parseDouble(spl[spl.length - 1]) < 1) {
-                spl[spl.length - 1] = spl[spl.length - 1].substring(spl[spl.length - 1].length() - 3, spl[spl.length - 1].length());
-            }
-        }
-        if (whitelisted_tag_suffixes.count(spl[spl.length - 1]) == 0) {
-            if (retentionList.count(spl[spl.length - 1].toInteger()) > 0) {
+        if (whitelisted_tag_suffixes.count(build_number) == 0) {
+            if (retentionList.count(build_number.toInteger()) > 0) {
                 checkValue = false;
             }
         }
@@ -81,7 +74,7 @@ if (components != null) {
         if (checkValue == false) {
             log.info("----------");
             log.info("CompDate: ${comp.lastUpdated()} RetDate: ${retentionDate}");
-            if (comp.lastUpdated() > retentionDate) {
+            // if (comp.lastUpdated() > retentionDate) {
                 log.info("retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
                 log.info("deleting ${comp.name()}, version: ${comp.version()}");
                 // ------------------------------------------------
@@ -90,7 +83,7 @@ if (components != null) {
                 // ------------------------------------------------
                 log.info("----------");
                 deletedComponentCount++;
-            }
+            // }
         } else {
             log.info("Component skipped: ${comp.name()} ${comp.version()}");
         }
