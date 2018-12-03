@@ -57,7 +57,7 @@ if (components != null) {
         def build_number = tagSplited[tagSplited.length - 1];
         def retentionList = tagList.subList(0, tagList.size() - retentionCount);
 
-        if (whitelisted_tag_suffixes.contains(build_number) == false) {
+        if (!whitelisted_tag_suffixes.contains(build_number)) {
             if (retentionList.contains(build_number.toInteger())) {
                 if (comp.lastUpdated() > retentionDate) {
                     log.info("retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
