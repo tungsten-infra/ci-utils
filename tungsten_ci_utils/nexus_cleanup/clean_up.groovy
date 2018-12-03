@@ -37,7 +37,6 @@ if (components != null) {
 // comp.version() expected to be in a format {{ os }}-{{ realse }}-{{ branch }}-{{ build }} e.g. rhel-queens-master-386 
 
     listOfComponents.reverseEach { comp ->
-
         def tag = comp.version();
         def tagSplited = tag.split("-");
         def build_number = tagSplited[tagSplited.length - 1];
