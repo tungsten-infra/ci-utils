@@ -45,11 +45,9 @@ if (components != null) {
         if (whitelisted_tag_suffixes.contains(build_number)) {
             log.info("Component skipped: ${comp.name()} ${comp.version()}");
         } else {
-            if (whitelisted_tag_suffixes.contains(build_number) == false) {
-                if (tagList.count(build_number.toInteger()) == 0) {
-                    tagList.add(build_number.toInteger());
-                    println tagList.sort();
-                }
+            if (tagList.count(build_number.toInteger()) == 0) {
+                tagList.add(build_number.toInteger());
+                println tagList.sort();
             }
         }
     }
