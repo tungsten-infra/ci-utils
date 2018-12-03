@@ -10,6 +10,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
 def retentionDays = 15;
+def retentionCount = 15;
 def tagList = [];
 def repositoryName = 'BartsDockerRepo';
 def whitelisted_tag_suffixes = ["queens", "ocata", "newton", "latest", "40", "94", "122", "129", "161", "214", "309", "360"].toArray();
@@ -41,15 +42,13 @@ if (components != null) {
         def tagSplited = tag.split("-");
         def build_number = tagSplited[tagSplited.length - 1];
 
-        for (j = 0; j < whitelisted_tag_suffixes.length; j++) {
-            if (build_number == whitelisted_tag_suffixes[j]) {
-                log.info("Component skipped: ${comp.name()} ${comp.version()}");
-            } else {
-                if (whitelisted_tag_suffixes.count(build_number) == 0) {
-                    if (tagList.count(build_number.toInteger()) == 0) {
-                        tagList.add(build_number.toInteger());
-                        println tagList.sort();
-                    }
+        if (whitelisted_tag_suffixes.contains(build_number)) {
+            log.info("Component skipped: ${comp.name()} ${comp.version()}");
+        } else {
+            if (whitelisted_tag_suffixes.contains(build_number) == false) {
+                if (tagList.count(build_number.toInteger()) == 0) {
+                    tagList.add(build_number.toInteger());
+                    println tagList.sort();
                 }
             }
         }
@@ -59,9 +58,9 @@ if (components != null) {
         def tag = comp.version();
         def tagSplited = tag.split("-");
         def build_number = tagSplited[tagSplited.length - 1];
-        def retentionList = tagList.subList(0, tagList.size() - 15);
+        def retentionList = tagList.subList(0, tagList.size() - retentionCount);
 
-        if (whitelisted_tag_suffixes.count(build_number) == 0) {
+        if (whitelisted_tag_suffixes.contains(build_number) == false) {
             if (retentionList.contains(build_number.toInteger())) {
                 if (comp.lastUpdated() > retentionDate) {
                     log.info("retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
