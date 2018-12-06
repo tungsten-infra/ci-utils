@@ -64,13 +64,12 @@ if (components != null) {
         if(tagList.size() > retentionCount){
             retentionList = tagList.subList(0, tagList.size() - retentionCount);
         } else {
-            log.info("Component date: ${comp.lastUpdated()} is lower than ${retentionDate}");
+            log.info("Component date: ${comp.lastUpdated()} is isAfter ${retentionDate}");
             log.info("retentionList too short. Component skipped: ${comp.name()} ${comp.version()}");
             return true;
         }
         if (!whitelisted_tag_suffixes.contains(build_number)) {
             if (retentionList.contains(build_number.toInteger())) {
-                log.info("Component date: ${comp.lastUpdated()} is lower than ${retentionDate}");
                 if (comp.lastUpdated() < retentionDate) {
                     log.info("retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
                     log.info("deleting ${comp.name()}, version: ${comp.version()}");
