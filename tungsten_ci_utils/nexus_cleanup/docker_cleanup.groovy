@@ -59,13 +59,13 @@ if (components != null) {
         if(tagList.size() > retentionCount){
             retentionList = tagList.subList(0, tagList.size() - retentionCount);
         } else {
-            log.info("Component skipped: ${comp.name()} ${comp.version()}");
+            log.info("Number of builds is already less than ${retentionCount}");
             return true;
         }
         if (!whitelisted_tag_suffixes.contains(build_number)) {
             if (retentionList.contains(build_number.toInteger())) {
                 if (comp.lastUpdated() < retentionDate) {
-                    log.info("retentionDate: ${comp.lastUpdated()} isAfter ${retentionDate}");
+                    log.info("retentionDate: ${comp.lastUpdated()} isOlder ${retentionDate}");
                     log.info("deleting ${comp.name()}, version: ${comp.version()}");
                     // uncomment to delete components and their assets
                     // service.deleteComponent(repo, comp);
