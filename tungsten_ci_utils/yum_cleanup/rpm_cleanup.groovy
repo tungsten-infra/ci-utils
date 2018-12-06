@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
+def retentionDays = 25;
 def retentionCount = 25;
 def tagList = [];
 def repositoryName = 'yum-tungsten';
@@ -67,12 +68,16 @@ if (components != null) {
         }
         if (!whitelisted_tag_suffixes.contains(build_number)) {
             if (retentionList.contains(build_number.toInteger())) {
-                log.info("deleting ${comp.name()}, version: ${comp.version()}");
-                // uncomment to delete components and their assets
-                // service.deleteComponent(repo, comp);
-                log.info("----------");
-                deletedComponentCount++;
-            }
+                if (comp.lastUpdated() < retentionDate) {
+                    log.info("deleting ${comp.name()}, version: ${comp.version()}");
+                    // uncomment to delete components and their assets
+                    // service.deleteComponent(repo, comp);
+                    log.info("----------");
+                    deletedComponentCount++;
+                } else {
+                    log.info("Component skipped due to retention date: ${comp.name()} ${comp.version()}");
+                }
+            }   
         }
     }
     log.info("\n\nDeleted Component count: ${deletedComponentCount} \n");
