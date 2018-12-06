@@ -9,7 +9,6 @@ import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 
-def retentionDays = 45;
 def retentionCount = 25;
 def tagList = [];
 def repositoryName = 'yum-tungsten';
