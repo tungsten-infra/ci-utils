@@ -32,8 +32,8 @@ try {
 if (components != null) {
     int deletedComponentCount = 0;
     def listOfComponents = ImmutableList.copyOf(components);
-// comp.version() expected to be in a format branch-build_number.architecture
-// Sometimes 'el6' or 'el7' is added between build-number and achitecture e.g. 5.0-365.el7 
+// comp.version() expected to be in a format branch-build_number
+// Sometimes 'el6' or 'el7' is added on the end e.g. 5.0-365.el7 
 
     listOfComponents.reverseEach { comp ->
         def tag = comp.version();
