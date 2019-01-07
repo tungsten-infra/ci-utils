@@ -18,7 +18,7 @@ def retentionDays = 15;
 def retentionCount = 15;
 def tagList = [];
 def repositoryName = 'BartsDockerRepo';
-def whitelisted_tag_suffixes = ["queens", "ocata", "newton", "latest", "5.0-40", "5.0-94", "5.0-122", "5.0-129", "5.0-161", "5.0-214", "5.0-309", "5.0-360"].toArray();
+def whitelisted_tag_suffixes = ["queens", "ocata", "newton", "latest", "5.0-40", "5.0-94", "5.0-122", "5.0-129", "5.0-161", "5.0-168", "5.0-214", "5.0-309", "5.0-360"].toArray();
 log.info(":::Cleanup script started!");
 MaintenanceService service = container.lookup("org.sonatype.nexus.repository.maintenance.MaintenanceService");
 def repo = repository.repositoryManager.get(repositoryName);
