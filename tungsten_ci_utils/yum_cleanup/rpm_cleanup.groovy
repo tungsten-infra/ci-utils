@@ -1,4 +1,4 @@
-// Script created for retention of private docker repo on Nexus.
+// Script created for retention of yum repo on Nexus.
 // To use that script change value of repositoryName to the name of cleaning repository.
 // Second thing to do is uncomment line 83. That will allow script to delete objects in yum-repo.
 // Open your Nexus Server -> Server administration and configuration -> Tasks -> Create task -> Admin - Execute script
@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 
 def retentionCount = 25;
 def tagList = [];
-def repositoryName = 'yum-tungsten';
+def repositoryName = 'yum-tungsten-nightly';
 def whitelisted_tag_suffixes = ["5.0-40", "5.0-94", "5.0-122", "5.0-129", "5.0-161", "5.0-168", "5.0-214", "5.0-309", "5.0-360", "5.0-365"].toArray();
 log.info(":::Cleanup script started!");
 MaintenanceService service = container.lookup("org.sonatype.nexus.repository.maintenance.MaintenanceService");
