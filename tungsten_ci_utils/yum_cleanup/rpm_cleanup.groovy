@@ -1,6 +1,6 @@
 // Script created for retention of private docker repo on Nexus.
 // To use that script change value of repositoryName to the name of cleaning repository.
-// Second thing to do is uncomment line 85. That will allow script to delete objects in yum-repo.
+// Second thing to do is uncomment line 83. That will allow script to delete objects in yum-repo.
 // Open your Nexus Server -> Server administration and configuration -> Tasks -> Create task -> Admin - Execute script
 // -> Choose name of a task -> change Script language to groovy -> set Task frequency -> paste script and save.
 import org.sonatype.nexus.repository.storage.StorageFacet;
