@@ -17,10 +17,9 @@ db = MySQLDatabase(db_name, user=user, password=password, host=db_host, port=db_
 class TestStats(Model):
     change = IntegerField(index=True)
     patchset = IntegerField()
-    duration = IntegerField()
-    caseclass = CharField()
-    casename = CharField()
     suitename = CharField()
+    no_testcases = IntegerField()
+    duration = IntegerField()
     result = CharField()
 
     class Meta:

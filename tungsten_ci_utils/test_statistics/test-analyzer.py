@@ -42,25 +42,23 @@ def read_test_info_from_xml(doc):
 
     for testsuite in testsuites:
         suitename = testsuite.get("name")
+        suite_duration = 0
+        suite_result = "SUCCESS"
+        no_testcases = 0
         for testcase in testsuite.findall("testcase"):
-            duration_s = testcase.get("time")
-            duration = int(float(duration_s) * 1000)
-            caseclass = testcase.get("classname")
-            casename = testcase.get("name")
+            no_testcases += 1
+            testcase_duration_s = testcase.get("time")
+            testcase_duration = int(float(testcase_duration_s) * 1000)
+            suite_duration += testcase_duration
             if testcase.find("failure") is not None:
-                result = "FAILED"
-            elif testcase.find("skipped") is not None:
-                result = "SKIPPED"
-            else:
-                result = "SUCCESS"
-            record = {
-                "suitename": suitename,
-                "caseclass": caseclass,
-                "casename": casename,
-                "duration": duration,
-                "result": result,
-            }
-            records.append(record)
+                suite_result = "FAILED"
+        record = {
+            "suitename": suitename,
+            "no_testcases": no_testcases,
+            "duration": suite_duration,
+            "result": suite_result,
+        }
+        records.append(record)
     return records
 
 
