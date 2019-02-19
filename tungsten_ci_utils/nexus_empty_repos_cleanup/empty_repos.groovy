@@ -32,12 +32,10 @@ try {
     Iterable<Asset> assets = tx.
         findAssets(Query.builder().where('last_updated > ').param(request.startDate).build(), [repo])
 
-    def urls = assets.collect { "/repository/${repo.name}/${it.name()}" }
-
     assets.each { asset ->
         def name = asset.name();
         def nameSplited = name.split("/");
-        if(nameSplited.length.toString() == '3'){
+        if((nameSplited[nameSplited.length - 1]).toString() == 'repomd.xml'){
             if(asset.lastUpdated() < retentionDate){
                 log.info("Deleting asset ${asset.name()}")
                 counter++;
