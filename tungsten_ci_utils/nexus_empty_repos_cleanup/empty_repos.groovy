@@ -1,3 +1,8 @@
+// Script created for cleaning empty yum repos with just repodata on Nexus.
+// To use that script change value of repositoryName to the name of cleaning repository.
+// Second thing to do is uncomment line 44 and 48. That will allow script to delete assets in repository.
+// Open your Nexus Server -> Server administration and configuration -> Tasks -> Create task -> Admin - Execute script
+// -> Choose name of a task -> change Script language to groovy -> set Task frequency -> paste script and save.
 import org.sonatype.nexus.repository.storage.Asset
 import org.sonatype.nexus.repository.storage.Query
 import org.sonatype.nexus.repository.storage.StorageFacet
@@ -36,11 +41,11 @@ try {
             if(asset.lastUpdated() < retentionDate){
                 log.info("Deleting asset ${asset.name()}")
                 counter++;
-                tx.deleteAsset(asset);
+                // tx.deleteAsset(asset);
                 if (asset.componentId() != null) {
                     log.info("Deleting component for asset ${asset.name()}")
                     def component = tx.findComponent(asset.componentId());
-                    tx.deleteComponent(component);
+                    // tx.deleteComponent(component);
                 }
             }
         }
