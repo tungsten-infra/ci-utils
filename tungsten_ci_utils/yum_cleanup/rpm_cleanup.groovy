@@ -46,15 +46,16 @@ if (components != null) {
         if(!build_number.isNumber()){
             build_number = build_number.split("\\.")[0];
         }
+        // two_parts_build_number is checking correct of build_number with whitelist suffixes
+        // covering build number like `5.0.3-0.310` and also different branches from whitelist 5.0 vs 5.1
         def two_parts_build_number = tagSplited[tagSplited.length - 2] + "-" + build_number;
         if (whitelisted_tag_suffixes.contains(build_number)) {
             log.info("Component skipped: ${comp.name()} ${comp.version()}");
         } else if (whitelisted_tag_suffixes.contains(two_parts_build_number)){
             log.info("Component skipped: ${comp.name()} ${comp.version()}");
         }else {
-            if (tagList.count(build_number.toInteger()) == 0) {
+            if (!tagList.contains(build_number.toInteger())) {
                 tagList.add(build_number.toInteger());
-                println tagList.sort();
             }
         }
     }
