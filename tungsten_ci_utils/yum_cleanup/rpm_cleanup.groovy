@@ -59,8 +59,9 @@ if (components != null) {
             }
         }
     }
-
-    listOfComponents.reverseEach { comp ->
+    if(tagList.size() > retentionCount){
+        retentionList = tagList.subList(0, tagList.size() - retentionCount);
+        listOfComponents.reverseEach { comp ->
         def tag = comp.version();
         def tagSplited = tag.split("-");
         def build_number = tagSplited[tagSplited.length - 1];
@@ -83,12 +84,16 @@ if (components != null) {
                     // uncomment to delete components and their assets
                     // service.deleteComponent(repo, comp);
                     // log.info("----------");
-                    // deletedComponentCount++;
+                    deletedComponentCount++;
                 } else {
                     log.info("Component skipped due to retention date: ${comp.name()} ${comp.version()}");
                 }
             }
         }    
     }
-    log.info("\n\nDeleted Component count: ${deletedComponentCount} \n");
+        log.info("\n\nDeleted Component count: ${deletedComponentCount} \n");
+    } else {
+        log.info("retentionList too short. Component skipped: ${comp.name()} ${comp.version()}");
+        return true;
+    }    
 }
