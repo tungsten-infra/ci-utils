@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 def retentionDays = 15;
 def retentionCount = 15;
 def tagList = [];
-def repositoryName = 'BartsDockerRepo';
+def repositoryName = 'dr-contrail-ci';
 def whitelisted_tag_suffixes = ["queens", "ocata", "newton", "latest", "5.0-40", "5.0-94", "5.0-122", "5.0-129", "5.0-161", "5.0-168", "5.0-214", "5.0-309", "5.0-360", "5.0-365"].toArray();
 log.info(":::Cleanup script started!");
 MaintenanceService service = container.lookup("org.sonatype.nexus.repository.maintenance.MaintenanceService");
@@ -60,19 +60,15 @@ if (components != null) {
             }
         }
     }
-
-    listOfComponents.reverseEach { comp ->
+    if(tagList.size() > retentionCount){
+        retentionList = tagList.subList(0, tagList.size() - retentionCount);
+        listOfComponents.reverseEach { comp ->
         def tag = comp.version();
         def tagSplited = tag.split("-");
         def build_number = tagSplited[tagSplited.length - 1];
         def two_parts_build_number = tagSplited[tagSplited.length - 2] + "-" + tagSplited[tagSplited.length - 1];
         def retentionList = tagList;
-        if(tagList.size() > retentionCount){
-            retentionList = tagList.subList(0, tagList.size() - retentionCount);
-        } else {
-            log.info("Number of builds is already less than ${retentionCount}");
-            return true;
-        }
+        
         if (!whitelisted_tag_suffixes.contains(build_number)) {
             if (!whitelisted_tag_suffixes.contains(two_parts_build_number)) {
                 if (retentionList.contains(build_number.toInteger())) {
@@ -90,5 +86,9 @@ if (components != null) {
             }
         }
     }
-    log.info("\n\nDeleted Component count: ${deletedComponentCount} \n");
+        log.info("\n\nDeleted Component count: ${deletedComponentCount} \n");
+    } else {
+        log.info("Number of builds is already less than ${retentionCount}");
+        return true;
+    }
 }
