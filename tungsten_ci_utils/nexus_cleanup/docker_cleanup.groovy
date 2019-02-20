@@ -18,7 +18,7 @@ def retentionDays = 15;
 def retentionCount = 15;
 def tagList = [];
 def repositoryName = 'BartsDockerRepo';
-def whitelisted_tag_suffixes = ["queens", "ocata", "newton", "latest", "5.0-40", "5.0-94", "5.0-122", "5.0-129", "5.0-161", "5.0-168", "5.0-214", "5.0-309", "5.0-360"].toArray();
+def whitelisted_tag_suffixes = ["queens", "ocata", "newton", "latest", "5.0-40", "5.0-94", "5.0-122", "5.0-129", "5.0-161", "5.0-168", "5.0-214", "5.0-309", "5.0-360", "5.0-365"].toArray();
 log.info(":::Cleanup script started!");
 MaintenanceService service = container.lookup("org.sonatype.nexus.repository.maintenance.MaintenanceService");
 def repo = repository.repositoryManager.get(repositoryName);
@@ -46,6 +46,8 @@ if (components != null) {
         def tagSplited = tag.split("-");
         log.info("tagsplit ${tag} ${tagSplited}");
         def build_number = tagSplited[tagSplited.length - 1];
+        // two_parts_build_number is checking correct of build_number with whitelist suffixes
+        // covering build number like `5.0.3-0.310` and also different branches from whitelist 5.0 vs 5.1
         def two_parts_build_number = tagSplited[tagSplited.length - 2] + "-" + tagSplited[tagSplited.length - 1];
         log.info("new two parts ${two_parts_build_number}");
         if (whitelisted_tag_suffixes.contains(build_number)) {
@@ -53,9 +55,8 @@ if (components != null) {
         } else if (whitelisted_tag_suffixes.contains(two_parts_build_number)){
             log.info("Component skipped: ${comp.name()} ${comp.version()}");
         }else {
-            if (tagList.count(build_number.toInteger()) == 0) {
+            if (!tagList.contains(build_number.toInteger())) {
                 tagList.add(build_number.toInteger());
-                println tagList.sort();
             }
         }
     }
