@@ -42,23 +42,66 @@ def read_test_info_from_xml(doc):
 
     for testsuite in testsuites:
         suitename = testsuite.get("name")
-        suite_duration = 0
-        suite_result = "SUCCESS"
-        no_testcases = 0
         for testcase in testsuite.findall("testcase"):
-            no_testcases += 1
             testcase_duration_s = testcase.get("time")
             testcase_duration = int(float(testcase_duration_s) * 1000)
-            suite_duration += testcase_duration
+            caseclass = testcase.get("classname")
+            casename = testcase.get("name")
             if testcase.find("failure") is not None:
-                suite_result = "FAILED"
-        record = {
-            "suitename": suitename,
-            "no_testcases": no_testcases,
-            "duration": suite_duration,
-            "result": suite_result,
-        }
-        records.append(record)
+                result = "FAILED"
+            elif testcase.find("skipped") is not None:
+                result = "SKIPPED"
+            else:
+                result = "SUCCESS"
+
+            # test cases may be generated, suffixed with consecutive natural numbers
+            # e.g.
+            # GracefulRestart_Flap_Some_2_3/0
+            # GracefulRestart_Flap_Some_2_3/1
+            # GracefulRestart_Flap_Some_2_3/2
+            # GracefulRestart_Flap_Some_2_3/3
+            # Handle them as a single test case as there can be thousands of variations
+            # further aggregation happens in aggregate_test_records
+            casename = casename.split('/')[0]
+            record = {
+                "suitename": suitename,
+                "caseclass": caseclass,
+                "casename": casename,
+                "duration": testcase_duration,
+                "result": result,
+            }
+
+            if any(r['casename'] == casename and
+                   r['suitename'] == suitename and
+                   r['caseclass'] == caseclass
+                   for r in records):
+                r = next(item for item in records if item["casename"] == casename and
+                                                    item['suitename'] == suitename and
+                                                    item['caseclass'] == caseclass)
+                r['duration'] += testcase_duration
+                if record['result'] == "FAILED":
+                    r['result'] = record['result']
+            else:
+                records.append(record)
+    return records
+
+
+# same suitename/caseclass/casenames records can be in multiple XML report files
+# aggregate them to one single record
+def aggregate_test_records(records, records_to_aggregate):
+    for rta in records_to_aggregate:
+        if any(r['casename'] == rta['casename'] and
+               r['suitename'] == rta['suitename'] and
+               r['caseclass'] == rta['caseclass']
+               for r in records):
+            r = next(item for item in records if item['casename'] == rta['casename'] and
+                                                 item['suitename'] == rta['suitename'] and
+                                                 item['caseclass'] == rta['caseclass'])
+            r['duration'] += rta['duration']
+            if rta['result'] == "FAILED":
+                r['result'] = rta['result']
+        else:
+            records.append(rta)
     return records
 
 
@@ -113,8 +156,8 @@ def main():
 
             for archived_xml in archived_xml_paths:
                 test_results_xml = read_xml_gz(archived_xml)
-                test_target_records = read_test_info_from_xml(test_results_xml)
-                records = records + test_target_records
+                test_records = read_test_info_from_xml(test_results_xml)
+                records = aggregate_test_records(records, test_records)
 
     for record in records:
         if args.change: record["change"] = args.change
