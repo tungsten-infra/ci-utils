@@ -366,10 +366,16 @@ def main():
     parser.add_argument("--changes-json", action="append")
     parser.add_argument("branch")
     parser.add_argument("build_number")
+    parser.add_argument("previous_build_number", nargs='?')
     args = parser.parse_args()
     branch = args.branch
-    build_number = args.build_number
-    previous_build_number = str(int(build_number)-1)
+
+    if args.previous_build_number is not None:
+        previous_build_number, build_number = sorted([int(args.previous_build_number), int(args.build_number)])
+    else:
+        build_number = int(args.build_number)
+        previous_build_number = str(int(build_number)-1)
+        
 
     # if pointed to already generated json file(s), load the data and skip the
     # whole generation process directly to the html rendering step
