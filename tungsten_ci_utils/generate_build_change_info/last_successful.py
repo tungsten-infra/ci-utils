@@ -72,9 +72,8 @@ def main():
 
         if len(result) > 0:
             if result[0][0] == 'SUCCESS':
-                last_successful = build_number
-                log.debug('last successful buildset before %s found, number: %s', og_build_number, last_successful)
-                print(last_successful)
+                log.debug('last successful buildset before %s found, number: %s', og_build_number, build_number)
+                print(build_number)
                 break
             elif result[0][0] == 'FAILURE':
                 log.debug('buildset %s was a failure', build_number)
