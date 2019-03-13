@@ -72,14 +72,20 @@ def main():
                 last_successful = build_number
                 log.debug('last successful buildset before %s found, number: %s', og_build_number, last_successful)
                 print(last_successful)
+                break
             elif result[0][0] == 'FAILURE':
                 log.debug('buildset %s was a failure', build_number)
-                build_number -= 1
             else:
                 log.warning('unknown buildset result for current iteration (build number %s)', build_number)
         else:
-            log.debug('last successful build not found in the database')
-            break
+            log.error('buildset number %s not found in the database, aborting', build_number)
+            sys.exit(1) # we exit here, assuming there are no gaps in (incremental) build numbers
+
+        build_number -= 1
+
+    else:
+        log.error('last successful buildset not found')
+        sys.exit(1)
 
     db.close()
 
