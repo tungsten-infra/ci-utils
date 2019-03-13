@@ -36,8 +36,7 @@ def main():
     branch = str(args.branch)
     credentials_json = args.credentials_json[0]
 
-    build_number = int(args.build_number)
-    og_build_number = build_number
+    build_number = og_build_number = int(args.build_number)
     build_number -= 1
 
     db_config = get_json_data(credentials_json)
@@ -56,9 +55,7 @@ def main():
         log.error('database connection error')
         sys.exit(1)
 
-    last_successful = False
-
-    while (build_number > 0) and (not last_successful):
+    while build_number > 0:
         query = """
         SELECT result FROM zuul_buildset WHERE id IN 
         (SELECT buildset_id FROM zuul_build WHERE log_url LIKE CONCAT('%%periodic-nightly%%/', %s, '/%s%%'))
