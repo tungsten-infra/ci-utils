@@ -22,6 +22,11 @@ def get_json_data(file):
     data = json.loads(json_file)
     return data
 
+def close_db_exit_err(db):
+    if db is not None:
+        db.close()
+    sys.exit(1)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--credentials-json", action="append")
@@ -46,8 +51,9 @@ def main():
             port=db_config["port"]
         )
         cur = db.cursor()
+        log.debug('connected to db')
     except:
-        log.error('Database connection error')
+        log.error('database connection error')
         sys.exit(1)
 
     last_successful = False
@@ -65,7 +71,7 @@ def main():
             result = list(cur)
         except:
             log.error('Query execution error')
-            sys.exit(1)
+            close_db_exit_err(db)
 
         if len(result) > 0:
             if result[0][0] == 'SUCCESS':
@@ -79,14 +85,13 @@ def main():
                 log.warning('unknown buildset result for current iteration (build number %s)', build_number)
         else:
             log.error('buildset number %s not found in the database, aborting', build_number)
-            sys.exit(1) # we exit here, assuming there are no gaps in (incremental) build numbers
+            close_db_exit_err(db) # we exit here, assuming there are no gaps in (incremental) build numbers
 
         build_number -= 1
 
     else:
         log.error('last successful buildset not found')
-        db.close()
-        sys.exit(1)
+        close_db_exit_err(db)
 
     db.close()
 
