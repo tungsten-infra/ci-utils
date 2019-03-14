@@ -90,13 +90,11 @@ def read_test_info_from_xml(doc):
 # aggregate them to one single record
 def aggregate_test_records(records, records_to_aggregate):
     for rta in records_to_aggregate:
-        if any(r['casename'] == rta['casename'] and
-               r['suitename'] == rta['suitename'] and
-               r['caseclass'] == rta['caseclass']
-               for r in records):
-            r = next(item for item in records if item['casename'] == rta['casename'] and
-                                                 item['suitename'] == rta['suitename'] and
-                                                 item['caseclass'] == rta['caseclass'])
+        matching_records = [record for record in records if record['casename'] == rta['casename'] and
+                                                            record['suitename'] == rta['suitename'] and
+                                                            record['caseclass'] == rta['caseclass']]
+        if matching_records:
+            r = matching_records[0]
             r['duration'] += rta['duration']
             if rta['result'] == "FAILED":
                 r['result'] = rta['result']
