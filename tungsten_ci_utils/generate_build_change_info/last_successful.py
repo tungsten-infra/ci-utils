@@ -109,7 +109,7 @@ def main():
         log.error('error executing query, aborting')
         close_db_exit_err(db)
     except IndexError:
-        log.error('invalid values fetched from database, aborting')
+        log.error('invalid values fetched from database or last successful buildset not found, aborting')
         close_db_exit_err(db)
     except:
         log.error('unknown error (not raising exception)')
