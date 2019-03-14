@@ -18,7 +18,8 @@ class TestStats(Model):
     change = IntegerField(index=True)
     patchset = IntegerField()
     suitename = CharField()
-    no_testcases = IntegerField()
+    caseclass = CharField()
+    casename = CharField()
     duration = IntegerField()
     result = CharField()
 
