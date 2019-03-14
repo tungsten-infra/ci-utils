@@ -105,12 +105,15 @@ def main():
 
         log.debug('getting log url of last successful buildset')
         log_url = get_log_url(cur, query_success_log_url, last_success_id)
+
     except MySQLdb.OperationalError:
         log.error('error executing query, aborting')
         close_db_exit_err(db)
+
     except IndexError:
         log.error('invalid values fetched from database or last successful buildset not found, aborting')
         close_db_exit_err(db)
+
     except:
         log.error('unknown error (not raising exception)')
         close_db_exit_err(db)
