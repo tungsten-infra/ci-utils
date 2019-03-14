@@ -70,19 +70,7 @@ def read_test_info_from_xml(doc):
                 "duration": testcase_duration,
                 "result": result,
             }
-
-            if any(r['casename'] == casename and
-                   r['suitename'] == suitename and
-                   r['caseclass'] == caseclass
-                   for r in records):
-                r = next(item for item in records if item["casename"] == casename and
-                                                    item['suitename'] == suitename and
-                                                    item['caseclass'] == caseclass)
-                r['duration'] += testcase_duration
-                if record['result'] == "FAILED":
-                    r['result'] = record['result']
-            else:
-                records.append(record)
+            records.append(record)
     return records
 
 
