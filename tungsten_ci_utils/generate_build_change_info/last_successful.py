@@ -45,7 +45,8 @@ def get_log_url(cur,query,id):
     log_url = list(cur)[0][0]
     return log_url
 
-def build_number_from_log_url(regex,log_url):
+def get_build_number_from_log_url(log_url,branch):
+    regex = '(?<=' + branch + '\/)(.*?)(?=\/)'
     return re.search(regex, log_url).group(1)
 
 def main():
@@ -120,9 +121,7 @@ def main():
 
     db.close()
     
-    regex = '(?<=' + branch + '\/)(.*?)(?=\/)'
-    last_successful = build_number_from_log_url(regex,log_url)
-
+    last_successful = get_build_number_from_log_url(log_url,branch)
     print(last_successful)
 
 if __name__ == '__main__':
