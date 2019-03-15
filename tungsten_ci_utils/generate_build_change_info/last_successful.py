@@ -66,7 +66,7 @@ def main():
     AND zuul_buildset.pipeline = 'periodic-nightly'
     AND zuul_buildset.ref LIKE CONCAT('refs/heads/', %s)
     AND zuul_buildset.id < %s
-    AND zuul_build.end_time < %s;
+    AND zuul_build.end_time < %s
     """
 
     query_success_log_url = """
