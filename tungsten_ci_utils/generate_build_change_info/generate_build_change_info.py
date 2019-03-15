@@ -364,13 +364,13 @@ def fetch_json(source):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--changes-json", action="append")
-    parser.add_argument("--deployment-run", action="store_true") # a flag helpful to determine if the script was run via ansible or manually
+    parser.add_argument("--fetched-prev", action="store_true")
     parser.add_argument("branch")
     parser.add_argument("build_number")
     parser.add_argument("previous_build_number", nargs='?')
     args = parser.parse_args()
     branch = args.branch
-    deployment_run = args.deployment_run
+    fetched_prev = args.fetched_prev
 
     if args.previous_build_number is not None:
         previous_build_number, build_number = sorted([int(args.previous_build_number), int(args.build_number)])
@@ -418,7 +418,7 @@ def main():
         "build_number_prev": previous_build_number,
         "build_number": build_number,
         "bugs": bugs,
-        "deployment_run": deployment_run
+        "fetched_prev": fetched_prev
     }
     with open('changes.json', 'w') as out:
         json.dump(projects, out, indent=4)
