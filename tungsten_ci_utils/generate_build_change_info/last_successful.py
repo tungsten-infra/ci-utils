@@ -23,16 +23,10 @@ def get_json_data(file):
         data = json.load(json_file)
     return data
 
-def close_db_exit_err(db):
-    #raise
-    if db is not None:
-        db.close()
-        log.debug('db connection closed')
-    sys.exit(1)
-
 def get_build_number_from_log_url(log_url,branch):
     regex = '(?<=' + branch + '\/)(.*?)(?=\/)'
-    return int(re.search(regex, log_url).group(1))
+    number = re.search(regex, log_url).group(1)
+    return number
 
 def main():
     parser = argparse.ArgumentParser()
@@ -97,17 +91,19 @@ def main():
 
     except MySQLdb.OperationalError:
         log.error('error executing query, aborting')
-        close_db_exit_err(db)
+        sys.exit(1)
 
     except IndexError:
         log.error('invalid values fetched from database or last successful buildset not found, aborting')
-        close_db_exit_err(db)
+        sys.exit(1)
 
     except:
         log.error('unknown error (not raising exception)')
-        close_db_exit_err(db)
+        sys.exit(1)
 
-    db.close()
+    finally:
+        cur.close()
+        db.close()
     
     last_successful = get_build_number_from_log_url(log_url,branch)
     print(last_successful)
