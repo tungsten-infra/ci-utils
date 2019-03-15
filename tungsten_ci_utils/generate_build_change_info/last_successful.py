@@ -30,24 +30,9 @@ def close_db_exit_err(db):
         log.debug('db connection closed')
     sys.exit(1)
 
-def get_current_buildset_info(cur,query,branch,build_number):
-    cur.execute(query, (branch, build_number))
-    buildset_id, end_time = list(cur)[0]
-    return buildset_id,end_time
-
-def get_last_successful_buildset_info(cur,query,branch,current_id,end_time):
-    cur.execute(query, (branch, current_id, end_time))
-    success_id = list(cur)[0][0]
-    return success_id
-
-def get_log_url(cur,query,id):
-    cur.execute(query,(id,))
-    log_url = list(cur)[0][0]
-    return log_url
-
 def get_build_number_from_log_url(log_url,branch):
     regex = '(?<=' + branch + '\/)(.*?)(?=\/)'
-    return re.search(regex, log_url).group(1)
+    return int(re.search(regex, log_url).group(1))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -99,13 +84,16 @@ def main():
 
     try:
         log.debug('getting zuul buildset_id and end_time for current build number')
-        current_buildset_id, end_time = get_current_buildset_info(cur, query_get_buildset, branch, build_number)
-
+        cur.execute(query_get_buildset, (branch, build_number))
+        current_buildset_id, end_time = list(cur)[0]
+                
         log.debug('getting id of last successful buildset before current')
-        last_success_id = get_last_successful_buildset_info(cur, query_success_id, branch, current_buildset_id, end_time)
+        cur.execute(query_success_id, (branch, current_buildset_id, end_time))
+        last_success_id = list(cur)[0][0]
 
         log.debug('getting log url of last successful buildset')
-        log_url = get_log_url(cur, query_success_log_url, last_success_id)
+        cur.execute(query_success_log_url,(last_success_id,))
+        log_url = list(cur)[0][0]
 
     except MySQLdb.OperationalError:
         log.error('error executing query, aborting')
