@@ -6,6 +6,9 @@ td, th { border: 1px solid black; padding: 10px }
 </style>
 </head>
 <h1>Differences between builds #{{ build_number_prev }} and #{{ build_number }}</h1>
+{% if fetched_prev %}
+<h5>Build #{{ build_number_prev }} was automatically detected as the last previous successful nightly build before #{{ build_number }}
+{% endif %}
 {% for canonical_name, project  in projects.items()  %}
 <table>
 <tr>

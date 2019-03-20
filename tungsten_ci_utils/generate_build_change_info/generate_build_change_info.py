@@ -364,12 +364,20 @@ def fetch_json(source):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--changes-json", action="append")
+    parser.add_argument("--fetched-prev", action="store_true")
     parser.add_argument("branch")
     parser.add_argument("build_number")
+    parser.add_argument("previous_build_number", nargs='?')
     args = parser.parse_args()
     branch = args.branch
-    build_number = args.build_number
-    previous_build_number = str(int(build_number)-1)
+    fetched_prev = args.fetched_prev
+
+    if args.previous_build_number is not None:
+        previous_build_number, build_number = sorted([int(args.previous_build_number), int(args.build_number)])
+    else:
+        build_number = int(args.build_number)
+        previous_build_number = str(int(build_number)-1)
+        
 
     # if pointed to already generated json file(s), load the data and skip the
     # whole generation process directly to the html rendering step
@@ -409,7 +417,8 @@ def main():
         "projects": projects,
         "build_number_prev": previous_build_number,
         "build_number": build_number,
-        "bugs": bugs
+        "bugs": bugs,
+        "fetched_prev": fetched_prev
     }
     with open('changes.json', 'w') as out:
         json.dump(projects, out, indent=4)
