@@ -1,0 +1,8 @@
+#!/bin/bash
+export LOG_PATH="/var/log/trigger.log"
+export VERIFICATION_REGISTRY_URL="1.2.3.4:5000"
+export VERIFICATION_REPOSITORY_NAME="scratch"
+export TRIGGER_NEWREV="0000000000000000000000000000000000000000"
+export TRIGGER_PROJECT="org/project"
+export TRIGGER_PIPELINE="test-pipeline"
+export TRIGGER_TENANT="zuul-tenant"
