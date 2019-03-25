@@ -35,13 +35,17 @@ def get_last_successful_build_number(db, db_build_numbers, branch='master'):
 
 
 def set_logging(args):
-    log_filename = '/var/log/listen_for_zuul_builds.log'
+    log_filename = '/tmp/listen_for_zuul_builds.log'
     log.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s [%(name)s] %(levelname)s: %(message)s')
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
     console.setFormatter(formatter)
     log.addHandler(console)
+
+    fileHandler = logging.FileHandler(log_filename)
+    fileHandler.setFormatter(formatter)
+    log.addHandler(fileHandler)
 
 if __name__ == '__main__':
     set_logging(None)
