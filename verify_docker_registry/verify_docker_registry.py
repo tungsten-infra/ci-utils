@@ -97,6 +97,8 @@ class DockerRegistry:
     # most useful, "public interface" methods
 
     def list_tags(self, image, token=None):
+        if token is None and self.credentials:
+            token = self.auth(image)
         resp = self.request(image + "/tags/list", token)
         resp = resp.json()
         if resp.get("errors", []):
@@ -141,7 +143,7 @@ def setup_logging(log_level):
     log.addHandler(console)
 
     logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-    fileHandler = logging.FileHandler("/tmp/check_network/check.log")
+    fileHandler = logging.FileHandler("/tmp/verify_docker_registry.log")
     fileHandler.setFormatter(logFormatter)
     log.addHandler(fileHandler)
 
@@ -154,9 +156,19 @@ if __name__ == "__main__":
     parser.add_argument("--tag")
     args = parser.parse_args()
     setup_logging("DEBUG")
-    #with open("config.yaml", "r") as config_file:
-    #    config = yaml.load(config_file)
-    client = DockerRegistry(args.registry)
+    defaults = {
+        'username': None,
+        'password': None
+    }
+    config = {}
+    config.update(defaults)
+    try:
+        with open("config.yaml", "r") as config_file:
+            config_from_file = yaml.load(config_file)
+        config.update(config_from_file)
+    except Exception as e:
+        pass
+    client = DockerRegistry(args.registry, username=config['username'], password=config['password'])
     if args.action == "is_tag_present":
         result = client.is_tag_present(args.repository, args.tag)
         print(result)
