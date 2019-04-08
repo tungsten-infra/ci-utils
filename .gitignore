@@ -3,5 +3,3 @@ venv*
 *.pyc
 *.swp
 ~*
-*.egg-info
-venv*

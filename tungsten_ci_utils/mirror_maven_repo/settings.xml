@@ -1,9 +1,0 @@
-<settings>
-  <servers>
-    <server>
-      <id>nexus</id>
-      <username>fillmein</username>
-      <password>fillmein</password>
-    </server>
-  </servers>
-</settings>

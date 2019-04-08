@@ -3,13 +3,11 @@ import json
 import subprocess
 import pygit2
 
-
 def get_repo_obj():
     current_working_directory = os.getcwd()
     repository_path = pygit2.discover_repository(current_working_directory)
     repo = pygit2.Repository(repository_path)
     return repo
-
 
 def dump_commits(sha_list):
     repo = get_repo_obj()
@@ -24,16 +22,15 @@ def dump_commits(sha_list):
             if message[0] == "":
                 del message[0]
         message = '\n'.join(message)
-        obj = {"sha": commit.hex,
-               "author": {
-                   "email": commit.author.email,
-                   "name": commit.author.name},
-               "timestamp": commit.commit_time,
-               "title": title,
-               "message": message}
+        obj = { "sha": commit.hex,
+                "author": {
+                    "email": commit.author.email,
+                    "name": commit.author.name },
+                "timestamp": commit.commit_time,
+                "title": title,
+                "message": message }
         data.append(obj)
     return data
-
 
 def get_commit_list_simple(count=None):
     """Use pygit2 commit listing to return a
@@ -52,7 +49,6 @@ def get_commit_list_simple(count=None):
         i += 1
     return commits
 
-
 def get_commit_list_git_cli(args):
     """Use regular git command line to obtain a list of commit SHAs to dump (as
     strings)"""
@@ -63,7 +59,6 @@ def get_commit_list_git_cli(args):
     shas = shas.splitlines()
     print(shas)
     return shas
-
 
 if __name__ == "__main__":
     sha_list = get_commit_list_simple(10)
