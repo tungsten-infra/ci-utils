@@ -1,0 +1,2 @@
+The tpc_external_publish script uploads the contents of Contrail third-party-cache RPM repos to
+external webserver. This is needed for contrail-dev-env to work outside of the CI network.
