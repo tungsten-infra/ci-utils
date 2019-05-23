@@ -164,11 +164,11 @@ def kill_buildset(buildset_id):
     print('kill_buildset - killing jobs:')
     for job in buildset["jobs"]:
         if (job["end_time"] is None and job["worker"] is not None and
-                job["uuid"] is not None):
+            job["uuid"] is not None):
             # kill running jobs
             if job["worker"]["name"] != "Unknown":
                 print('job {name}, uuid {uuid}, worker {worker}'.format(**job))
-	        jobs.append((job["uuid"], job["worker"]["name"]))
+                jobs.append((job["uuid"], job["worker"]["name"]))
     kill_jobs(jobs)
     return None if buildset_is_running(buildset_id) else True
 
@@ -182,8 +182,9 @@ def get_nightly_zuul_ref(branch="master"):
             pretty_print(head["jobs"])
             for job in head["jobs"]:
                 print("uuid:", job["uuid"])
-                if branch in job["report_url"]:
-                    return head["zuul_ref"]
+                if job["report_url"] is not None:
+                    if branch in job["report_url"]:
+                        return head["zuul_ref"]
     return None
 
 
