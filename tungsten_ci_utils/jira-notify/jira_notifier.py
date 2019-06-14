@@ -89,7 +89,11 @@ Function responsible for searching jira issues by summary
     print(version, build_number)
     log.info('connected to jira - {}'.format(jira.server_info()))
     issues = jira.search_issues('project = JD AND type=Incident AND updated >= -21d')
-    found = [issue for issue in issues if version in issue.fields.summary and str(build_number) in issue.fields.summary]
+    #found = [issue for issue in issues if version in issue.fields.summary and str(build_number) in issue.fields.summary]
+    found = []
+    for issue in issues:
+        if version in issue.fields.summary and str(build_number) in issue.fields.summary:
+            found.append(issue)
     if found:
         log.info('found issue - {}'.format(*[issue.permalink() for issue in found]))
         return [issue.permalink() for issue in found]
