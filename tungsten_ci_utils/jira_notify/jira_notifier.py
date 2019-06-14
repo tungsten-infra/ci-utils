@@ -130,8 +130,7 @@ def main():
         if info['result'] == 'FAILURE':
             found = search_for_ticket(jira, branch, build_number)
             if not found:
-                #create_new_issue(jira, branch, build_number, info['ref_url'])
-                pass
+                create_new_issue(jira, branch, build_number, info['ref_url'])
 
 
 if __name__ == '__main__':
