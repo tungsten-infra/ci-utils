@@ -74,8 +74,8 @@ def get_build_on_branch(version):
         c.execute(
             "SELECT build_number,zuul_buildset_id FROM build_metadata_cache WHERE build_number = (SELECT max(build_number) FROM build_metadata_cache WHERE version = %s)",
             (version,))
-        data = c.fetchone()
-        return [data[0], data[1]]
+        data = c.fetchall()
+        return [data[-1][0], data[-1][1]]
 
 
 def search_for_ticket(jira, version, build_number):
