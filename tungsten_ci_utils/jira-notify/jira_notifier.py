@@ -60,8 +60,9 @@ def get_last_build_info(buildset_id):
         log.info('connected to zuul cache database')
         c.execute(
             "SELECT ref_url, result FROM zuul_buildset WHERE zuul_ref = %s", (('z' + buildset_id),))
-        data = c.fetchone()
-        return {'ref_url': data[0], 'result': data[1]}
+        data = c.fetchall()
+        log.info('ref_url: [{}] - result: [{}]'.format(data[-1][0], data[-1][1]))
+        return {'ref_url': data[-1][0], 'result': data[-1][1]}
 
 
 def get_build_on_branch(version):
@@ -75,6 +76,7 @@ def get_build_on_branch(version):
             "SELECT build_number,zuul_buildset_id FROM build_metadata_cache WHERE build_number = (SELECT max(build_number) FROM build_metadata_cache WHERE version = %s)",
             (version,))
         data = c.fetchall()
+        log.info('build number: [{}] - zuul_buildset_id [{}]'.format(data[-1][0], data[-1][1]))
         return [data[-1][0], data[-1][1]]
 
 
@@ -86,10 +88,9 @@ Function responsible for searching jira issues by summary
     :param build_number: zuul build number: str
     :return: issue found: bool
     """
-    print(version, build_number)
-    log.info('connected to jira - {}'.format(jira.server_info()))
-    issues = jira.search_issues('project = JD AND type=Incident AND updated >= -21d')
-    #found = [issue for issue in issues if version in issue.fields.summary and str(build_number) in issue.fields.summary]
+    log.info('connected to jira - [{}]'.format(jira.server_info()))
+    log.info('searching jira | version - [{}] - build number - [{}]'.format(version, build_number))
+    issues = jira.search_issues('project = CE AND type=Incident AND updated >= -21d')
     found = []
     for issue in issues:
         if version in issue.fields.summary and str(build_number) in issue.fields.summary:
@@ -109,9 +110,10 @@ def create_new_issue(jira, version, build_number, details):
     :param details: zuul link to log: str
     :return: new issue link: str
     """
-    log.info('creating ticket')
+    log.info(
+        'creating ticket - version: [{}] - build number [{}] - details: [{}]'.format(version, build_number, details))
     issue_dict = {
-        'project': {'id': '10004'},
+        'project': {'id': '10068'},
         'summary': 'Nightly - {} - {} - FAILED!'.format(version, build_number),
         'description': 'Build number {} on branch {} FAILED!\nLogs can be found here: {}'.format(build_number, version,
                                                                                                  details),

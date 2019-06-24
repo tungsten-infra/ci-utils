@@ -1,0 +1,23 @@
+zuul_cache:
+  user: zuul
+  password: c0ntrail123
+  db: zuul_job_cache
+  host: 10.84.56.49
+  port: "3306"
+
+zuul_db:
+  user: zuul_ro
+  password: coo^Ngeing2o
+  database: zuul
+  host: 148.251.110.24
+  port: 8080
+
+jira:
+  username: "ozhyhalo@juniper.net"
+  password: "a4spbMX7Jh66UgSHlfrv4391"
+  host: "https://contrail-jws.atlassian.net"
+
+branches:
+  - "5.1"
+  - "master"
+  - "5.0"
