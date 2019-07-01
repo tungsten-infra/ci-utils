@@ -4,7 +4,7 @@ import mysql.connector
 
 from jira import JIRA
 
-with open('config.yaml', 'r') as yf:
+with open('/opt/ci-utils/tungsten_ci_utils/jira-notify/config.yaml', 'r') as yf:
     cfg = yaml.load(yf)
 
 log = logging.getLogger(__name__)
@@ -76,6 +76,7 @@ def get_build_on_branch(version):
             "SELECT build_number,zuul_buildset_id FROM build_metadata_cache WHERE build_number = (SELECT max(build_number) FROM build_metadata_cache WHERE version = %s)",
             (version,))
         data = c.fetchall()
+        print(data)
         log.info('build number: [{}] - zuul_buildset_id [{}]'.format(data[-1][0], data[-1][1]))
         return [data[-1][0], data[-1][1]]
 
@@ -90,7 +91,7 @@ Function responsible for searching jira issues by summary
     """
     log.info('connected to jira - [{}]'.format(jira.server_info()))
     log.info('searching jira | version - [{}] - build number - [{}]'.format(version, build_number))
-    issues = jira.search_issues('project = CE AND type=Incident AND updated >= -21d')
+    issues = jira.search_issues('project = CE AND type=bug AND updated >= -21d')
     found = []
     for issue in issues:
         if version in issue.fields.summary and str(build_number) in issue.fields.summary:
@@ -117,7 +118,7 @@ def create_new_issue(jira, version, build_number, details):
         'summary': 'Nightly - {} - {} - FAILED!'.format(version, build_number),
         'description': 'Build number {} on branch {} FAILED!\nLogs can be found here: {}'.format(build_number, version,
                                                                                                  details),
-        'issuetype': {'name': 'Incident'},
+        'issuetype': {'name': 'bug'},
         "components": [{"name": 'Buildcop'}],
     }
     log.info('parameters - {}'.format(issue_dict))
