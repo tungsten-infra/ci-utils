@@ -91,7 +91,7 @@ Function responsible for searching jira issues by summary
     """
     log.info('connected to jira - [{}]'.format(jira.server_info()))
     log.info('searching jira | version - [{}] - build number - [{}]'.format(version, build_number))
-    issues = jira.search_issues('project = CE AND type=bug AND updated >= -21d')
+    issues = jira.search_issues('project = CE AND type=Bug AND updated >= -21d')
     found = []
     for issue in issues:
         if version in issue.fields.summary and str(build_number) in issue.fields.summary:
@@ -118,8 +118,9 @@ def create_new_issue(jira, version, build_number, details):
         'summary': 'Nightly - {} - {} - FAILED!'.format(version, build_number),
         'description': 'Build number {} on branch {} FAILED!\nLogs can be found here: {}'.format(build_number, version,
                                                                                                  details),
-        'issuetype': {'name': 'bug'},
+        'issuetype': {'name': 'Bug'},
         "components": [{"name": 'Buildcop'}],
+        "customfield_10045" :  {'value':'Contrail Cloud'},
     }
     log.info('parameters - {}'.format(issue_dict))
     new_issue = jira.create_issue(fields=issue_dict)
