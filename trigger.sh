@@ -1,8 +1,8 @@
 set -x
 mydir="$(realpath $(dirname $0))"
-source "${mydir}/config.sh"
+. "${mydir}/config.sh"
 log_file="${LOG_PATH}"
-for BRANCH in master R5.0; do
+for BRANCH in master R5.1 R1907; do
     echo ""
     echo "Running for branch: $BRANCH"
     TAGBRANCH=$(echo $BRANCH | sed -s 's/^R//')
@@ -10,7 +10,7 @@ for BRANCH in master R5.0; do
     cd listen_for_build
     ./install.sh
     . venv-*/bin/activate
-    BUILD_NUMBER=$(python listen_for_build.py $BRANCH)
+    BUILD_NUMBER=$(${PYTHON_INTERPRETER} listen_for_build.py $BRANCH)
     if [ $? -ne 0 ]; then
       echo "$(date) Error checking build number information. Skipping further run.." | tee -a "$log_file"
       continue
@@ -22,11 +22,13 @@ for BRANCH in master R5.0; do
     ./install.sh
     . venv-*/bin/activate
     TAG=${TAGBRANCH}-${BUILD_NUMBER}
-    python verify_docker_registry.py --registry "${VERIFICATION_REGISTRY_URL}" --repository "${VERIFICATION_REPOSITORY_NAME}" --tag $TAG is_tag_present
+    echo TAG: ,$TAG,
+    ${PYTHON_INTERPRETER} verify_docker_registry.py --registry "${VERIFICATION_REGISTRY_URL}" --repository "${VERIFICATION_REPOSITORY_NAME}" --tag ${TAG} is_tag_present
     result=$?
     cd $mydir
     if [ "$result" -ne 0 ]; then
        echo "$(date) Found build number for ${BRANCH}: ${BUILD_NUMBER}, missing in the registry. Starting build." | tee -a "$log_file"
-       zuul -c zuul.conf enqueue-ref --tenant "${TRIGGER_TENANT}" --trigger timer --pipeline "${TRIGGER_PIPELINE}" --project "${TRIGGER_PROJECT}" --ref refs/heads/$BRANCH --newrev "${TRIGGER_NEWREV}"
+       zuul enqueue-ref --tenant "${TRIGGER_TENANT}" --trigger timer --pipeline "${TRIGGER_PIPELINE}" --project "${TRIGGER_PROJECT}" --ref refs/heads/$BRANCH
+       sleep 240
     fi
 done

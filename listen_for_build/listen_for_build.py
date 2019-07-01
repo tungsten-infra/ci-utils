@@ -4,12 +4,24 @@ import sys
 import logging
 import yaml
 import MySQLdb
-#import requests
+
 
 log = logging.getLogger('listen_for_zuul_build')
 
-def get_last_successful_build_number(db, db_build_numbers, branch='master'):
-    c = db.cursor()
+
+def create_mysql_connection(conn_data):
+    conn = MySQLdb.connect(host=conn_data["host"],
+                         port=conn_data["port"],
+                         user=conn_data["user"],
+                         passwd=conn_data["password"],
+                         db=conn_data["database"])
+    return conn
+
+
+def get_last_successful_build_number(zuul_db_conn_data, build_db_conn_data, branch='master', build_number_method='build_cache_db'):
+    """ build_number_method: can be either build_cache_db or log_url"""
+    zuul_db = create_mysql_connection(zuul_db_conn_data)
+    c = zuul_db.cursor()
     pipeline = 'periodic-nightly'
     ref = 'refs/heads/' + branch
     result = 'SUCCESS'
@@ -23,14 +35,28 @@ def get_last_successful_build_number(db, db_build_numbers, branch='master'):
         log.error("No buildsets found for branch %s, exiting...", ref)
         sys.exit(1)
     last_buildset = c.fetchone()
-    c2 = db_build_numbers.cursor()
     buildset_id = last_buildset[1][1:]
-    query = """SELECT build_number from build_metadata_cache where zuul_buildset_id = %s"""
-    c2.execute(query, (buildset_id,))
-    if c2.rowcount != 1:
-        log.error("Error: build_number db should return 1 entry for buildset %s, returned %s, exiting.", buildset_id,  c2.rowcount)
-        sys.exit(1)
-    build_number = c2.fetchone()[0]
+    if build_number_method == 'build_cache_db':
+        build_db = create_mysql_connection(build_db_conn_data)
+        c2 = build_db.cursor()
+        query = """SELECT build_number from build_metadata_cache where zuul_buildset_id = %s"""
+        c2.execute(query, (buildset_id,))
+        if c2.rowcount != 1:
+            log.error("Error: build_number db should return 1 entry for buildset %s, returned %s, exiting.", buildset_id,  c2.rowcount)
+            sys.exit(1)
+        build_number = c2.fetchone()[0]
+    elif build_number_method == 'log_url':
+        query = """SELECT log_url FROM zuul_build where buildset_id = %s and log_url NOT LIKE '%%\_%%'"""
+        try:
+            c.execute(query, (last_buildset[0],))
+        except Exception as e:
+            log.error("Exception during query execution %s", e)
+            sys.exit(1)
+        build = c.fetchone()
+        log_url = build[0]
+        build_number = int(log_url.split('/')[-3])
+    else:
+        raise Exception('Unsupported build_number_method: ' + str(build_number_method))
     return build_number
 
 
@@ -49,22 +75,18 @@ def set_logging(args):
 
 if __name__ == '__main__':
     set_logging(None)
+    defaults = {
+      'build_number_method': 'build_cache_db',
+      'zuul_db': {},
+      'build_db': {},
+    }
+    config = {}
+    config.update(defaults)
     with open("config.yaml", "r") as config_file:
-        config = yaml.load(config_file)
+        config_from_file = yaml.load(config_file)
+        config.update(config_from_file)
     branch = sys.argv[1]
-    zuul_db = config["zuul_db"]
-    build_db = config["build_db"]
-    zuul_db_conn = MySQLdb.connect(host=zuul_db["host"],
-                         port=zuul_db["port"],
-                         user=zuul_db["user"],
-                         passwd=zuul_db["password"],
-                         db=zuul_db["database"])
-    build_db_conn = MySQLdb.connect(host=build_db["host"],
-                         port=build_db["port"],
-                         user=build_db["user"],
-                         passwd=build_db["password"],
-                         db=build_db["database"])
-    build_number = get_last_successful_build_number(zuul_db_conn, build_db_conn, branch=branch)
+    build_number = get_last_successful_build_number(config['zuul_db'], config['build_db'], branch=branch, build_number_method=config['build_number_method'])
     log.debug("Found last successful Tungsten build number for branch %s: %s", branch, build_number)
     print(build_number)
     sys.exit(0)
