@@ -91,7 +91,7 @@ Function responsible for searching jira issues by summary
     """
     log.info('connected to jira - [{}]'.format(jira.server_info()))
     log.info('searching jira | version - [{}] - build number - [{}]'.format(version, build_number))
-    issues = jira.search_issues('project = CE AND type=Bug AND updated >= -21d')
+    issues = jira.search_issues('project = CE AND updated >= -21d')
     found = []
     for issue in issues:
         if version in issue.fields.summary and str(build_number) in issue.fields.summary:
