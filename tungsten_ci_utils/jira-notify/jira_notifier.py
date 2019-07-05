@@ -111,16 +111,18 @@ def create_new_issue(jira, version, build_number, details):
     :param details: zuul link to log: str
     :return: new issue link: str
     """
+    if version != 'master':
+        version = 'R' + version
     log.info(
         'creating ticket - version: [{}] - build number [{}] - details: [{}]'.format(version, build_number, details))
     issue_dict = {
         'project': {'id': '10068'},
-        'summary': 'Nightly - {} - {} - FAILED!'.format(version, build_number),
-        'description': 'Build number {} on branch {} FAILED!\nLogs can be found here: {}'.format(build_number, version,
-                                                                                                 details),
+        'summary': 'Public nightly - {} - {} - FAILED!'.format(version, build_number),
+        'description': 'Build number {} on branch {} FAILED!\nLogs can be found here: http://logs.opencontrail.org/periodic-nightly/review.opencontrail.org/{}/{}'.format(
+            build_number, version, version, build_number),
         'issuetype': {'name': 'Bug'},
         "components": [{"name": 'Buildcop'}],
-        "customfield_10045" :  {'value':'Contrail Cloud'},
+        "customfield_10045": {'value': 'Contrail Cloud'},
     }
     log.info('parameters - {}'.format(issue_dict))
     new_issue = jira.create_issue(fields=issue_dict)
