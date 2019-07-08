@@ -122,7 +122,8 @@ def create_new_issue(jira, version, build_number, details):
             build_number, version, version, build_number),
         'issuetype': {'name': 'Bug'},
         "components": [{"name": 'Buildcop'}],
-        "customfield_10045": {'value': 'Contrail Cloud'},
+        "customfield_10045": {'value': 'CEM'},
+        "labels": ["build-failure"],
     }
     log.info('parameters - {}'.format(issue_dict))
     new_issue = jira.create_issue(fields=issue_dict)
