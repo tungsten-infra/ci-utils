@@ -27,6 +27,13 @@ for BRANCH in master R5.0; do
     cd $mydir
     if [ "$result" -ne 0 ]; then
        echo "$(date) Found build number for ${BRANCH}: ${BUILD_NUMBER}, missing in the registry. Starting build." | tee -a "$log_file"
-       zuul -c zuul.conf enqueue-ref --tenant "${TRIGGER_TENANT}" --trigger timer --pipeline "${TRIGGER_PIPELINE}" --project "${TRIGGER_PROJECT}" --ref refs/heads/$BRANCH --newrev "${TRIGGER_NEWREV}"
+       searchStr="${BRANCH}: ${BUILD_NUMBER}, missing in the registry. Starting build"
+       echo $searchStr
+       count=`grep -i "$searchStr" /tmp/zuul_build_trigger.log | wc -l`
+       if [ "$count" -le 3 ]; then
+         zuul -c zuul.conf enqueue-ref --tenant "${TRIGGER_TENANT}" --trigger timer --pipeline "${TRIGGER_PIPELINE}" --project "${TRIGGER_PROJECT}" --ref refs/heads/$BRANCH --newrev "${TRIGGER_NEWREV}"
+         #echo "execution check point"
+       # sleep 180
+       fi
     fi
 done
