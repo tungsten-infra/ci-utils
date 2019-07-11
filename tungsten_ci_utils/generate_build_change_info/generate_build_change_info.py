@@ -239,6 +239,9 @@ def dump_commit(sha, project, branch, config, repo_path=None):
         "title": title,
         "message": message
     }
+    print('-------------------------------1')
+    print(obj)
+    print('-------------------------------')
     obj["change"] = None
     obj["bugs"] = []
     for line in message_lines:
@@ -261,13 +264,22 @@ def dump_commit(sha, project, branch, config, repo_path=None):
             if bug_match is not None:
                 bug_id = bug_match.group(2)
                 resolution = bug_match.group(1)
+                title = obj["title"]
                 bug_info = {}
                 bug_info.update({
                     "id": bug_id,
                     "url": "https://contrail-jws.atlassian.net/browse/" + bug_id,
-                    "resolution": resolution
+                    "resolution": resolution,
+                    "title" : title
                 })
                 obj["bugs"].append(bug_info)
+
+                obj["bugs"].append(title)
+
+                print('-------------------------------2')
+                print(obj["bugs"])
+                print(bug_info)
+                print('-------------------------------')
     return obj
 
 
@@ -322,6 +334,7 @@ def summarize_bug_info(projects):
                 bugs[int_id]["changes"].append(
                     {"project": canonical_name,
                      "commit": change,
+                     "title": bug["title"],
                      "resolution": bug["resolution"]})
     bugs_list = sorted(list(bugs.items()))
     for bug_id, bug in bugs_list:
