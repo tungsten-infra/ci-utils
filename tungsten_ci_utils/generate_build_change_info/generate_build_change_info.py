@@ -206,12 +206,11 @@ def get_change_info(change_id, config):
 
 def get_lp_bug_info(bug_id):
     bug_url = 'https://api.launchpad.net/1.0/bugs/{}'.format(bug_id)
-    bug = {"description": "Not found", "title": "Not found"}
+    bug = {"description": "Not found"}
     req = requests.get(bug_url)
     if req.status_code == 200:
         bug_info = req.json()
         bug["description"] = bug_info["description"]
-        bug["title"] = bug_info["title"]
     elif req.status_code == 404:
         log.warning("Bug %s not found in LP", bug_url)
     else:
@@ -258,14 +257,14 @@ def dump_commit(sha, project, branch, config, repo_path=None):
                     project["name"] + "~" + branch + "~" + change_id, config)
             obj["change"] = change_info
         else:
-            bug_match = re.match(r'^(\S+)-Bug: +#(\d+)', line)
+            bug_match = re.match(r'^(\S+)-Bug: +(\S+)', line)
             if bug_match is not None:
                 bug_id = bug_match.group(2)
                 resolution = bug_match.group(1)
-                bug_info = get_lp_bug_info(bug_id)
+                bug_info = {}
                 bug_info.update({
                     "id": bug_id,
-                    "url": "https://launchpad.net/bugs/" + bug_id,
+                    "url": "https://contrail-jws.atlassian.net/browse/" + bug_id,
                     "resolution": resolution
                 })
                 obj["bugs"].append(bug_info)
@@ -309,12 +308,16 @@ def summarize_bug_info(projects):
     for canonical_name, project in projects.items():
         for change in project["changes"]:
             for bug in change["bugs"]:
-                int_id = int(bug["id"])
+                int_id = bug["id"]
+                try:
+                    int_id = int(bug["id"])
+                except ValueError:
+                    pass
                 if int_id not in bugs:
                     bugs[int_id] = {
                         "changes": [],
                         "url": bug["url"],
-                        "title": bug["title"]
+                        # "title": bug["title"]
                     }
                 bugs[int_id]["changes"].append(
                     {"project": canonical_name,
