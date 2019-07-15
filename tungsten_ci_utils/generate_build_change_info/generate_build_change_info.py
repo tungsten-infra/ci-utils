@@ -257,7 +257,7 @@ def dump_commit(sha, project, branch, config, repo_path=None):
                     project["name"] + "~" + branch + "~" + change_id, config)
             obj["change"] = change_info
         else:
-            bug_match = re.match(r'^(\S+)-Bug: +(\S+)', line)
+            bug_match = re.match(r'^(\S+)-bug: +(\S+)', line, re.IGNORECASE)
             if bug_match is not None:
                 bug_id = bug_match.group(2)
                 resolution = bug_match.group(1)
@@ -316,8 +316,7 @@ def summarize_bug_info(projects):
                 if int_id not in bugs:
                     bugs[int_id] = {
                         "changes": [],
-                        "url": bug["url"],
-                        # "title": bug["title"]
+                        "url": bug["url"]
                     }
                 bugs[int_id]["changes"].append(
                     {"project": canonical_name,
