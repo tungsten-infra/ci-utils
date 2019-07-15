@@ -203,21 +203,6 @@ def get_change_info(change_id, config):
     }
     return converted
 
-
-def get_lp_bug_info(bug_id):
-    bug_url = 'https://api.launchpad.net/1.0/bugs/{}'.format(bug_id)
-    bug = {"description": "Not found"}
-    req = requests.get(bug_url)
-    if req.status_code == 200:
-        bug_info = req.json()
-        bug["description"] = bug_info["description"]
-    elif req.status_code == 404:
-        log.warning("Bug %s not found in LP", bug_url)
-    else:
-        log.warning("Bug %s: unexpected return code %s", req.status_code)
-    return bug
-
-
 def dump_commit(sha, project, branch, config, repo_path=None):
     repo = get_repo_obj(repo_path)
     data = []
@@ -308,17 +293,17 @@ def summarize_bug_info(projects):
     for canonical_name, project in projects.items():
         for change in project["changes"]:
             for bug in change["bugs"]:
-                int_id = bug["id"]
+                bug_id = bug["id"]
                 try:
-                    int_id = int(bug["id"])
+                    bug_id = int(bug["id"])
                 except ValueError:
                     pass
-                if int_id not in bugs:
-                    bugs[int_id] = {
+                if bug_id not in bugs:
+                    bugs[bug_id] = {
                         "changes": [],
                         "url": bug["url"]
                     }
-                bugs[int_id]["changes"].append(
+                bugs[bug_id]["changes"].append(
                     {"project": canonical_name,
                      "commit": change,
                      "resolution": bug["resolution"]})
