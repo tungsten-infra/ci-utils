@@ -308,9 +308,6 @@ def summarize_bug_info(projects):
                      "commit": change,
                      "resolution": bug["resolution"]})
     bugs_list = sorted(list(bugs.items()))
-    for bug_id, bug in bugs_list:
-        if bug["changes"].sort(key=lambda x: x["commit"]) != None:
-            bug["changes"].sort(key=lambda x: x["commit"]["change"]["number"])
     return bugs_list
 
 
