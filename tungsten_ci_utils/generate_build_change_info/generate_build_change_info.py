@@ -309,7 +309,8 @@ def summarize_bug_info(projects):
                      "resolution": bug["resolution"]})
     bugs_list = sorted(list(bugs.items()))
     for bug_id, bug in bugs_list:
-        bug["changes"].sort(key=lambda x: x["commit"]["change"]["number"])
+        if bug["changes"].sort(key=lambda x: x["commit"]) != None:
+            bug["changes"].sort(key=lambda x: x["commit"]["change"]["number"])
     return bugs_list
 
 
@@ -364,7 +365,6 @@ def main():
     else:
         build_number = int(args.build_number)
         previous_build_number = str(int(build_number)-1)
-        
 
     # if pointed to already generated json file(s), load the data and skip the
     # whole generation process directly to the html rendering step
