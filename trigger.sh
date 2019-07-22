@@ -29,10 +29,16 @@ for BRANCH in master R1907; do
     TAG=${TAGBRANCH}-${BUILD_NUMBER}
     python verify_docker_registry.py --registry "${VERIFICATION_REGISTRY_URL}" --repository "${VERIFICATION_REPOSITORY_NAME}" --tag $TAG is_tag_present
     result=$?
-    echo $result | tee -a "$log_file"
-    cd $mydir
+    cd "$mydir"
     if [ "$result" -ne 0 ]; then
-       echo "$(date) Found build number for ${BRANCH}: ${BUILD_NUMBER}, missing in the registry. Starting build." | tee -a "$log_file"
-       zuul -c zuul.conf enqueue-ref --tenant "${TRIGGER_TENANT}" --trigger timer --pipeline "${TRIGGER_PIPELINE}" --project "${TRIGGER_PROJECT}" --ref refs/heads/$BRANCH --newrev "${TRIGGER_NEWREV}"
+       echo "$(date) Found build number for ${BRANCH}: ${BUILD_NUMBER}, missing in the registry" | tee -a "$log_file"
+       searchStr="Started ${BRANCH}: ${BUILD_NUMBER}."
+       count=$(grep -F "$searchStr" "$log_file" | wc -l)
+       if [ "$count" -le 240 ]; then
+         zuul -c zuul.conf enqueue-ref --tenant "${TRIGGER_TENANT}" --trigger timer --pipeline "${TRIGGER_PIPELINE}" --project "${TRIGGER_PROJECT}" --ref refs/heads/$BRANCH --newrev "${TRIGGER_NEWREV}"
+         echo "$searchStr The zuul enqueue-ref returned $?" | tee -a "$log_file"
+       else
+         echo "$(date) Ignoring build ${BRANCH}: ${BUILD_NUMBER}, too many attempts" | tee -a "$log_file"
+       fi
     fi
 done
