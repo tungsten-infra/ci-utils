@@ -3,7 +3,11 @@ set -x
 mydir="$(realpath $(dirname $0))"
 . "${mydir}/config.sh"
 log_file="${LOG_PATH}"
-for BRANCH in master R5.0; do
+# 2019-06-07 workaround # for BRANCH in master R5.0 R5.1 R1907; do
+# 2019-06-11 turned back R5.1 and R5.0 builds.
+# 2019-06-18 swap of R5.0 with R1907
+# 2019-07-22 remove R5.1
+for BRANCH in master R1907; do
     echo ""
     echo "Running for branch: $BRANCH"
     TAGBRANCH=$(echo $BRANCH | sed -s 's/^R//')
